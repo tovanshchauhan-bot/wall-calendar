@@ -1,0 +1,1 @@
+window.WC_FIREBASE_CONFIG={apiKey:"AIzaSyAXoNIh60RiUvGEWTmHrqeI-6-mGqHsiBI",authDomain:"wall-calendar-c45a2.firebaseapp.com",projectId:"wall-calendar-c45a2",storageBucket:"wall-calendar-c45a2.firebasestorage.app",messagingSenderId:"68433914466",appId:"1:68433914466:web:faeeac33bc159e71f13f3b"};
