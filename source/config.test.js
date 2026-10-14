@@ -1,0 +1,1 @@
+window.WC_FIREBASE_CONFIG={apiKey:"demo-key",authDomain:"demo-wallcal.firebaseapp.com",projectId:"demo-wallcal",appId:"1:000000000000:web:0000000000000000",emulator:{auth:"http://127.0.0.1:9099",firestore:["127.0.0.1",9999]}};

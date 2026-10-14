@@ -5,3 +5,5 @@ Installable web app: it opens and saves without internet, and syncs to Firebase 
 
 Data lives in this project's Firestore database, locked by its security rules to one Google account.
 The Firebase settings in `config.js` identify the project; they are not a password.
+
+The files here are built output. To change the app, edit `source/` and run `source/build.sh` (see `source/README.md`).
