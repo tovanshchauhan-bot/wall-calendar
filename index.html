@@ -32,7 +32,7 @@
   --gym:#2E7D4F; --on-gym:#FFFFFF; --run:#D0A21C; --on-run:#241C00;
   --u1:#FFF2C6; --u1-ink:#6B5300; --u2:#FCE2CC; --u2-ink:#8A4510; --u3:#F9D7D3; --u3-ink:#9B1C1C;
   --shadow:0 18px 50px rgba(18,22,28,.18);
-  --c-maths:#2F5D9E; --c-physics:#6A4C9C; --c-chemistry:#B5651D; --c-english:#A33B5B; --c-other:#2D7A73;
+  --c-maths:#2F5D9E; --c-physics:#6A4C9C; --c-chemistry:#B5651D; --c-english:#A33B5B; --c-other:#2D7A73; --c-event:#2D7A73;
   --font-display:"Archivo","Helvetica Neue",Arial,sans-serif;
   --font-ui:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
   --font-cond:"IBM Plex Sans Condensed","Arial Narrow","Helvetica Neue",Arial,sans-serif;
@@ -235,6 +235,16 @@ input[type="color"]{width:30px;height:24px;border:1px solid var(--rule);border-r
 .field input,.field select,.field textarea,.inp{width:100%;border:1px solid var(--rule-strong);border-radius:8px;background:var(--panel);padding:8px 10px;font-size:14px;min-width:0}
 .field textarea{resize:vertical;min-height:62px}
 .inline-check{display:flex;align-items:center;gap:8px;font-size:14px}
+.swatches{display:flex;flex-wrap:wrap;align-items:center;gap:9px;padding-top:2px}
+.swatch{--sw:var(--c-event);position:relative;flex:none;width:26px;height:26px;padding:0;border:0;border-radius:50%;background:var(--sw);cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.swatch[aria-pressed="true"],.swatch.cust.on{box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--sw)}
+.swatch.def{width:auto;display:inline-flex;align-items:center;gap:6px;padding:0 11px 0 5px;border-radius:999px;background:var(--chip);color:var(--ink-2);font-size:12px;font-weight:500}
+.swatch.def i{width:16px;height:16px;border-radius:50%;background:var(--c-event)}
+.swatch.def[aria-pressed="true"]{box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--c-event)}
+.swatch.cust{overflow:hidden;background:conic-gradient(#B23A3A,#B7791F,#6B7A2A,#1F7A99,#4C51BF,#8E3B8E,#B23A3A)}
+.swatch.cust.on{background:var(--sw)}
+.swatch.cust input{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;opacity:0;cursor:pointer}
+.sw.subj.ev{border-left-style:dotted}
 .err{color:var(--u3-ink);font-size:12.5px}
 .actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 .actions .left{margin-right:auto}
@@ -339,7 +349,8 @@ input[type="color"]{width:30px;height:24px;border:1px solid var(--rule);border-r
       <span><i class="sw subj" style="--c:var(--c-physics)"></i>Physics</span>
       <span><i class="sw subj" style="--c:var(--c-chemistry)"></i>Chemistry</span>
       <span><i class="sw subj" style="--c:var(--c-english)"></i>English</span>
-      <span><i class="sw subj" style="--c:var(--c-other)"></i>Other / events</span>
+      <span><i class="sw subj" style="--c:var(--c-other)"></i><span id="lg-other">Other / events</span></span>
+      <span id="lg-event" hidden><i class="sw subj ev" style="--c:var(--c-event)"></i>Events</span>
       <span class="muted hint">Hover over a day to tick gym or run</span>
     </div>
   </section>
@@ -362,6 +373,6 @@ input[type="color"]{width:30px;height:24px;border:1px solid var(--rule);border-r
 <div class="overlay" id="overlay" hidden><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
 <div class="toast" id="toast" hidden></div>
 <script src="config.js?v=3e4a4910ec"></script>
-<script type="module" src="app.js?v=b9f0315ca9"></script>
+<script type="module" src="app.js?v=c269c264cd"></script>
 </body>
 </html>

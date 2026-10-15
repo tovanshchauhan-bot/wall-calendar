@@ -13,7 +13,7 @@
   --gym:#2E7D4F; --on-gym:#FFFFFF; --run:#D0A21C; --on-run:#241C00;
   --u1:#FFF2C6; --u1-ink:#6B5300; --u2:#FCE2CC; --u2-ink:#8A4510; --u3:#F9D7D3; --u3-ink:#9B1C1C;
   --shadow:0 18px 50px rgba(18,22,28,.18);
-  --c-maths:#2F5D9E; --c-physics:#6A4C9C; --c-chemistry:#B5651D; --c-english:#A33B5B; --c-other:#2D7A73;
+  --c-maths:#2F5D9E; --c-physics:#6A4C9C; --c-chemistry:#B5651D; --c-english:#A33B5B; --c-other:#2D7A73; --c-event:#2D7A73;
   --font-display:"Archivo","Helvetica Neue",Arial,sans-serif;
   --font-ui:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
   --font-cond:"IBM Plex Sans Condensed","Arial Narrow","Helvetica Neue",Arial,sans-serif;
@@ -216,6 +216,16 @@ input[type="color"]{width:30px;height:24px;border:1px solid var(--rule);border-r
 .field input,.field select,.field textarea,.inp{width:100%;border:1px solid var(--rule-strong);border-radius:8px;background:var(--panel);padding:8px 10px;font-size:14px;min-width:0}
 .field textarea{resize:vertical;min-height:62px}
 .inline-check{display:flex;align-items:center;gap:8px;font-size:14px}
+.swatches{display:flex;flex-wrap:wrap;align-items:center;gap:9px;padding-top:2px}
+.swatch{--sw:var(--c-event);position:relative;flex:none;width:26px;height:26px;padding:0;border:0;border-radius:50%;background:var(--sw);cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.swatch[aria-pressed="true"],.swatch.cust.on{box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--sw)}
+.swatch.def{width:auto;display:inline-flex;align-items:center;gap:6px;padding:0 11px 0 5px;border-radius:999px;background:var(--chip);color:var(--ink-2);font-size:12px;font-weight:500}
+.swatch.def i{width:16px;height:16px;border-radius:50%;background:var(--c-event)}
+.swatch.def[aria-pressed="true"]{box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--c-event)}
+.swatch.cust{overflow:hidden;background:conic-gradient(#B23A3A,#B7791F,#6B7A2A,#1F7A99,#4C51BF,#8E3B8E,#B23A3A)}
+.swatch.cust.on{background:var(--sw)}
+.swatch.cust input{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;opacity:0;cursor:pointer}
+.sw.subj.ev{border-left-style:dotted}
 .err{color:var(--u3-ink);font-size:12.5px}
 .actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 .actions .left{margin-right:auto}
@@ -300,7 +310,8 @@ input[type="color"]{width:30px;height:24px;border:1px solid var(--rule);border-r
       <span><i class="sw subj" style="--c:var(--c-physics)"></i>Physics</span>
       <span><i class="sw subj" style="--c:var(--c-chemistry)"></i>Chemistry</span>
       <span><i class="sw subj" style="--c:var(--c-english)"></i>English</span>
-      <span><i class="sw subj" style="--c:var(--c-other)"></i>Other / events</span>
+      <span><i class="sw subj" style="--c:var(--c-other)"></i><span id="lg-other">Other / events</span></span>
+      <span id="lg-event" hidden><i class="sw subj ev" style="--c:var(--c-event)"></i>Events</span>
       <span class="muted hint">Hover over a day to tick gym or run</span>
     </div>
   </section>
@@ -340,12 +351,13 @@ const urg=n=>n<=2?"u3":n<=6?"u2":n<=14?"u1":"";
 window.__wc={monthCells,dowMon0,addDays,diffDays,iso};   /* exposed for testing */
 
 /* ---------- defaults ---------- */
-const GROUPS=[["maths","Maths"],["physics","Physics"],["chemistry","Chemistry"],["english","English"],["other","Other / events"]];
+const GROUPS=[["maths","Maths"],["physics","Physics"],["chemistry","Chemistry"],["english","English"],["other","Other"]];
+const EVENT_COLORS=[["#b23a3a","Crimson"],["#b7791f","Ochre"],["#6b7a2a","Olive"],["#1f7a99","Cyan"],["#4c51bf","Indigo"],["#8e3b8e","Plum"],["#7a5230","Brown"],["#55657a","Slate"]];
 const ACTS=[["gym","Gym"],["run","Run"]];
 const TIP={gym:["Went to the gym? Click to tick","Gym done. Click to undo"],run:["Went for a run? Click to tick","Run done. Click to undo"]};
 const TYPES=["Assessment Task","Exam","Assignment","Trial","HSC Exam","Homework","Presentation","Event","Other"];
 const DEFAULTS={startMonth:"2026-10",months:3,
-  colors:{maths:"#2F5D9E",physics:"#6A4C9C",chemistry:"#B5651D",english:"#A33B5B",other:"#2D7A73",gym:"#2E7D4F",run:"#D0A21C"},
+  colors:{maths:"#2F5D9E",physics:"#6A4C9C",chemistry:"#B5651D",english:"#A33B5B",other:"#2D7A73",event:"#2D7A73",gym:"#2E7D4F",run:"#D0A21C"},
   subjects:[{name:"Mathematics Advanced",short:"Maths Adv",group:"maths"},{name:"Mathematics Extension 1",short:"Ext 1",group:"maths"},
     {name:"Mathematics Extension 2",short:"Ext 2",group:"maths"},{name:"Physics",short:"Physics",group:"physics"},
     {name:"Chemistry",short:"Chem",group:"chemistry"},{name:"English Advanced",short:"English",group:"english"},{name:"Other",short:"Other",group:"other"}]};
@@ -365,6 +377,8 @@ const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;"
 const subjInfo=name=>S.settings.subjects.find(s=>s.name===name)||{name:name||"Other",short:name||"Other",group:"other"};
 const groupOf=it=>it.type==="Event"?"other":subjInfo(it.subject).group;
 const colorVar=g=>"var(--c-"+g+")";
+const HEX=/^#[0-9a-fA-F]{6}$/;
+const itemColor=it=>isEvent(it)?(HEX.test(it.color||"")?it.color:"var(--c-event)"):colorVar(subjInfo(it.subject).group);
 const isEvent=it=>it.type==="Event";
 const endOf=it=>(it.end&&it.end>it.date)?it.end:it.date;
 function itemsList(){return [...S.items.entries()].map(([id,v])=>Object.assign({id},v)).filter(it=>typeof it.date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(it.date))}
@@ -420,8 +434,9 @@ function actCount(kind,from,to){let n=0;for(const d of S[kind])if(d>=from&&d<=to
 function upcoming(includeEvents){const t=todayISO();return itemsList().filter(it=>it.date>=t&&(includeEvents||!isEvent(it)))
   .sort((a,b)=>(a.done?1:0)-(b.done?1:0)||(a.date<b.date?-1:a.date>b.date?1:0)||(sortKey(a)<sortKey(b)?-1:1))}
 function onColor(hex){const n=parseInt(hex.slice(1),16),c=[n>>16&255,n>>8&255,n&255].map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)});return (.2126*c[0]+.7152*c[1]+.0722*c[2])>.2?"#1A1600":"#FFFFFF"}
-function colorDecls(){const o=GROUPS.map(([g])=>["--c-"+g,S.settings.colors[g]]);for(const [a] of ACTS){const v=S.settings.colors[a];if(v&&v.toLowerCase()!==DEFAULTS.colors[a].toLowerCase())o.push(["--"+a,v],["--on-"+a,onColor(v)])}return o}
-function applyColors(){const r=document.documentElement.style;for(const [a] of ACTS){r.removeProperty("--"+a);r.removeProperty("--on-"+a)}for(const [k,v] of colorDecls())r.setProperty(k,v)}
+function colorDecls(){const o=[...GROUPS.map(([g])=>["--c-"+g,S.settings.colors[g]]),["--c-event",S.settings.colors.event]];for(const [a] of ACTS){const v=S.settings.colors[a];if(v&&v.toLowerCase()!==DEFAULTS.colors[a].toLowerCase())o.push(["--"+a,v],["--on-"+a,onColor(v)])}return o}
+function applyColors(){const r=document.documentElement.style;for(const [a] of ACTS){r.removeProperty("--"+a);r.removeProperty("--on-"+a)}for(const [k,v] of colorDecls())r.setProperty(k,v);
+  const same=String(S.settings.colors.other).toLowerCase()===String(S.settings.colors.event).toLowerCase(),lo=document.getElementById("lg-other"),le=document.getElementById("lg-event");if(lo)lo.textContent=same?"Other / events":"Other";if(le)le.hidden=same}
 
 /* ---------- render: header ---------- */
 function renderHeader(){const t=todayISO(),p=parts(t),left=diffDays(t,iso(p.y,12,31))+1,mleft=dim(p.y,p.m)-p.d+1;
@@ -452,7 +467,7 @@ function renderCalendar(){
       const shown=list.length>2?1:2;let pills="";
       list.slice(0,shown).forEach(it=>{const si=subjInfo(it.subject),ev=isEvent(it);
         const tip=(ev?"Event":si.name)+" — "+(it.name||"")+(it.type&&!ev?" · "+it.type:"")+(it.weight?" · "+it.weight:"")+(it.done?" · completed":"");
-        pills+='<span class="pill'+(ev?" ev":"")+(it.done?" done":"")+'" style="--c:'+colorVar(groupOf(it))+'" title="'+esc(tip)+'"><span class="ps">'+esc(ev?"":si.short+" · ")+"</span>"+esc(it.name||"(untitled)")+"</span>"});
+        pills+='<span class="pill'+(ev?" ev":"")+(it.done?" done":"")+'" style="--c:'+itemColor(it)+'" title="'+esc(tip)+'"><span class="ps">'+esc(ev?"":si.short+" · ")+"</span>"+esc(it.name||"(untitled)")+"</span>"});
       if(list.length>shown)pills+='<span class="more">+'+(list.length-shown)+" more</span>";
       const label=longDate(d)+(d===t?", today":"")+(gym?", gym done":"")+(run?", run done":"")+(list.length?", "+list.length+" item"+(list.length>1?"s":""):"");
       html+='<div class="'+cls.join(" ")+'" data-date="'+d+'" tabindex="0" role="button" aria-label="'+esc(label)+'"><div class="dhead"><span class="dnum">'+parts(d).d+'</span><span class="tl">Today</span></div><div class="items">'+pills+"</div>"+lanes+"</div>"}
@@ -464,7 +479,7 @@ function renderNextUp(){const el=$("nextup"),t=todayISO();
   const list=upcoming(false).filter(it=>!it.done).slice(0,3);
   if(!list.length){el.innerHTML='<span class="lbl">Next up</span><span class="muted">Nothing due. Add an assessment with + Add.</span>';return}
   el.innerHTML='<span class="lbl">Next up</span>'+list.map(it=>{const n=diffDays(t,it.date),si=subjInfo(it.subject);
-    return '<button type="button" class="chip" data-item="'+esc(it.id)+'" style="--c:'+colorVar(groupOf(it))+'" title="'+esc(si.name+" — "+(it.name||"")+" · "+shortDate(it.date))+'"><i class="dot"></i><span class="ct">'+esc(si.short)+" · "+esc(it.name||"")+'</span><span class="cd '+urg(n)+'">'+countdown(n)+"</span></button>"}).join("")}
+    return '<button type="button" class="chip" data-item="'+esc(it.id)+'" style="--c:'+itemColor(it)+'" title="'+esc(si.name+" — "+(it.name||"")+" · "+shortDate(it.date))+'"><i class="dot"></i><span class="ct">'+esc(si.short)+" · "+esc(it.name||"")+'</span><span class="cd '+urg(n)+'">'+countdown(n)+"</span></button>"}).join("")}
 function renderTraining(){const t=todayISO(),p=parts(t),m1=iso(p.y,p.m,1);let h="";
   for(const [k,label] of ACTS){const c7=actCount(k,addDays(t,-6),t),c30=actCount(k,addDays(t,-29),t),cm=actCount(k,m1,t);let strip="";
     for(let i=29;i>=0;i--){const d=addDays(t,-i),on=S[k].has(d);strip+='<i class="'+(on?"on":"")+(i===0?" now":"")+'" title="'+esc(shortDate(d))+(on?": "+label.toLowerCase():"")+'"></i>'}
@@ -482,7 +497,7 @@ function rowHTML(it,t,mode){const n=diffDays(t,it.date),si=subjInfo(it.subject),
   const dateTxt=shortDate(it.date)+(it.end&&it.end>it.date?" – "+shortDate(it.end):"");
   const cls=[];if(it.done)cls.push("done","dim");else if(mode==="dim"||(mode==="items"&&endOf(it)<t))cls.push("dim");
   return '<tr data-item="'+esc(it.id)+'" class="'+cls.join(" ")+'">'+(mode==="items"?"":"<td class=\"num\">"+cd+"</td>")+
-    '<td class="num">'+esc(dateTxt)+'</td><td><span class="subj" style="--c:'+colorVar(groupOf(it))+'"><i></i>'+esc(ev?"Event":si.name)+'</span></td><td class="nm">'+(ev?"◆ ":"")+esc(it.name||"")+"</td><td>"+esc(it.type||"")+'</td><td class="num">'+esc(it.weight||"")+"</td>"+
+    '<td class="num">'+esc(dateTxt)+'</td><td><span class="subj" style="--c:'+itemColor(it)+'"><i></i>'+esc(ev?"Event":si.name)+'</span></td><td class="nm">'+(ev?"◆ ":"")+esc(it.name||"")+"</td><td>"+esc(it.type||"")+'</td><td class="num">'+esc(it.weight||"")+"</td>"+
     (mode==="items"?'<td class="muted">'+esc(it.notes||"")+"</td>":"")+
     '<td><input type="checkbox" class="check" data-done="'+esc(it.id)+'" '+(it.done?"checked":"")+' aria-label="Completed: '+esc(it.name||"")+'"'+(S.offline?" disabled":"")+"></td></tr>"}
 function renderUpcoming(){const t=todayISO(),list=upcoming(showEvents),open=list.filter(i=>!i.done),done=list.filter(i=>i.done);
@@ -504,7 +519,7 @@ function renderItems(){const t=todayISO();let list=itemsList().sort((a,b)=>a.dat
 
 /* ---------- render: settings ---------- */
 function renderSettings(){const s=S.settings;
-  const colors=[...GROUPS,...ACTS].map(([g,l])=>'<label><input type="color" id="col-'+g+'" data-color="'+g+'" value="'+s.colors[g]+'">'+l+"</label>").join("");
+  const colors=[...GROUPS,["event","Events"],...ACTS].map(([g,l])=>'<label><input type="color" id="col-'+g+'" data-color="'+g+'" value="'+s.colors[g]+'">'+l+"</label>").join("");
   const subs=s.subjects.map((x,i)=>'<div class="subjrow"><input class="inp" id="sname-'+i+'" data-sname="'+i+'" value="'+esc(x.name)+'" aria-label="Subject name"><select class="inp" id="sgroup-'+i+'" data-sgroup="'+i+'" aria-label="Colour">'+GROUPS.map(([g,l])=>'<option value="'+g+'"'+(x.group===g?" selected":"")+">"+l+"</option>").join("")+'</select><button class="btn ghost iconbtn" type="button" data-sdel="'+i+'" aria-label="Remove '+esc(x.name)+'">×</button></div>').join("");
   $("view-settings").innerHTML='<div class="view-head"><div><h1>Settings</h1><p>Changes save automatically.</p></div></div><div class="settings">'+
   '<div class="card"><h3>Calendar</h3><div class="row"><label for="startMonth">Start month</label><input class="inp" style="width:auto" type="month" id="startMonth" value="'+s.startMonth+'"></div><p>Sets where each page of months begins. With 3 months shown, October starts the pages: Oct–Dec, Jan–Mar, and so on. The calendar turns the page by itself when a new block begins.</p></div>'+
@@ -514,11 +529,11 @@ function renderSettings(){const s=S.settings;
   '<div class="card" style="grid-column:1/-1"><h3>How to use</h3><ol class="howto">'+
   "<li><b>Gym or run.</b> Hover over a day and click Gym or Run along the bottom of its square (today always shows them). Gym fills the left half green, a run fills the right half gold. Click again to undo.</li>"+
   "<li><b>New assessment.</b> Click + Add, or click the day itself. Date, subject and name are enough; type, weighting and notes are optional. It shows on the calendar and in Upcoming straight away.</li>"+
-  "<li><b>Events.</b> Set the type to Event (formal, holiday, birthday, travel). They show on the calendar with ◆ and stay out of Upcoming. For anything longer than a day, add an end date.</li>"+
+  "<li><b>Events.</b> Set the type to Event (formal, holiday, birthday, travel) and pick a colour if you like. They show on the calendar with a dotted edge and stay out of Upcoming. For anything longer than a day, add an end date.</li>"+
   "<li><b>Finished.</b> Tick Done in Upcoming, the day view or Assessments. It stays in your record, struck through.</li>"+
   "<li><b>Automatic.</b> At midnight yesterday greys out and gets crossed off, today moves on, and the month captions, countdowns and gym totals update. Nothing to maintain.</li>"+
   "<li><b>Later months.</b> Use ‹ and › to turn pages, and Today to come back. There's no end date and nothing to extend or reset each year.</li>"+
-  "<li><b>Colours.</b> Change subject, gym and run colours under Colours above. Add or rename subjects under Subjects.</li>"+
+  "<li><b>Colours.</b> Change subject, event, gym and run colours under Colours above. Each event can also have its own colour, picked when you add or edit it. Add or rename subjects under Subjects.</li>"+
   "</ol></div></div>"}
 
 /* ---------- master render ---------- */
@@ -535,7 +550,7 @@ function showModal(html,state){$("modal").innerHTML=html;$("overlay").hidden=fal
 function openDay(d,refresh){
   const t=todayISO(),list=(itemsByDate(d,d).get(d)||[]),gym=S.gym.has(d),n=diffDays(t,d);
   const when=n===0?"Today":n>0?"In "+n+" day"+(n===1?"":"s"):(-n)+" day"+(n===-1?"":"s")+" ago";
-  const items=list.length?list.map(it=>{const si=subjInfo(it.subject),ev=isEvent(it);return '<div class="ditem'+(it.done?" done":"")+'" style="--c:'+colorVar(groupOf(it))+'"><input type="checkbox" class="check" data-done="'+esc(it.id)+'" '+(it.done?"checked":"")+' aria-label="Completed"'+(S.offline?" disabled":"")+'><div><div class="t">'+(ev?"◆ ":"")+esc(it.name||"(untitled)")+'</div><div class="m">'+esc(ev?"Event":si.name)+(it.type&&!ev?" · "+esc(it.type):"")+(it.weight?" · "+esc(it.weight):"")+(it.end&&it.end>it.date?" · "+esc(shortDate(it.date))+" – "+esc(shortDate(it.end)):"")+"</div>"+(it.notes?'<div class="m">'+esc(it.notes)+"</div>":"")+'</div><button class="btn ghost" type="button" data-edit="'+esc(it.id)+'">Edit</button></div>'}).join(""):'<p class="muted" style="margin:0">Nothing on this day.</p>';
+  const items=list.length?list.map(it=>{const si=subjInfo(it.subject),ev=isEvent(it);return '<div class="ditem'+(it.done?" done":"")+'" style="--c:'+itemColor(it)+'"><input type="checkbox" class="check" data-done="'+esc(it.id)+'" '+(it.done?"checked":"")+' aria-label="Completed"'+(S.offline?" disabled":"")+'><div><div class="t">'+(ev?"◆ ":"")+esc(it.name||"(untitled)")+'</div><div class="m">'+esc(ev?"Event":si.name)+(it.type&&!ev?" · "+esc(it.type):"")+(it.weight?" · "+esc(it.weight):"")+(it.end&&it.end>it.date?" · "+esc(shortDate(it.date))+" – "+esc(shortDate(it.end)):"")+"</div>"+(it.notes?'<div class="m">'+esc(it.notes)+"</div>":"")+'</div><button class="btn ghost" type="button" data-edit="'+esc(it.id)+'">Edit</button></div>'}).join(""):'<p class="muted" style="margin:0">Nothing on this day.</p>';
   const gymRow=d<=t?'<div class="gymrow"><span>Training</span><div class="acts">'+ACTS.map(([k,l])=>{const on=S[k].has(d);return '<button type="button" class="act ac-'+k+'" data-act="'+k+'" data-date="'+d+'" aria-pressed="'+on+'">'+(on?"✓ ":"")+l+"</button>"}).join("")+"</div></div>":"";
   const html='<div class="mtop"><div><h2>'+esc(longDate(d))+'</h2><div class="sub">'+when+'</div></div><button class="btn ghost iconbtn" type="button" data-close="1" aria-label="Close">×</button></div>'+gymRow+'<div class="dlist">'+items+'</div><div class="actions"><button class="btn primary" type="button" data-add="'+d+'"'+(S.offline?" disabled":"")+'>+ Add on this day</button></div>';
   if(refresh&&S.modal&&S.modal.kind==="day"&&S.modal.date===d){$("modal").innerHTML=html;return}
@@ -550,6 +565,7 @@ function openForm(id,dateDefault){
   '<label class="field"><span>End date <em>(multi-day only)</em></span><input type="date" id="f-end" value="'+esc(v.end||"")+'"></label>'+
   '<label class="field"><span>Subject</span><select id="f-subject">'+subjOpts+"</select></label>"+
   '<label class="field"><span>Type</span><select id="f-type">'+typeOpts+"</select></label>"+
+  '<div class="field full" id="f-colorRow"'+(v.type==="Event"?"":" hidden")+'><span>Event colour</span><div class="swatches" id="f-swatches"><button type="button" class="swatch def" data-sw="" aria-pressed="false"><i></i>Default</button>'+EVENT_COLORS.map(([h,l])=>'<button type="button" class="swatch" data-sw="'+h+'" style="--sw:'+h+'" aria-pressed="false" aria-label="'+l+'" title="'+l+'"></button>').join("")+'<label class="swatch cust" title="Pick any colour"><input type="color" id="f-colorPick" value="#2d7a73" aria-label="Pick any colour"></label></div></div>'+
   '<label class="field full"><span>Name</span><input id="f-name" maxlength="120" placeholder="e.g. Module 5 Test" value="'+esc(v.name)+'"></label>'+
   '<label class="field"><span>Weighting <em>(optional)</em></span><input id="f-weight" maxlength="20" placeholder="e.g. 25%" value="'+esc(v.weight||"")+'"></label>'+
   '<label class="inline-check" style="align-self:end;padding-bottom:8px"><input type="checkbox" class="check" id="f-done" '+(v.done?"checked":"")+"> Completed</label>"+
@@ -558,9 +574,15 @@ function openForm(id,dateDefault){
   '<div class="full actions">'+(it?'<button type="button" class="btn danger left" id="f-del">Delete</button>':"")+'<button type="button" class="btn" data-close="1">Cancel</button><button type="submit" class="btn primary" id="f-save">'+(it?"Save":"Add")+"</button></div></form>";
   showModal(html,{kind:"form",id});
   const typeSel=$("f-type"),subjSel=$("f-subject");
-  typeSel.addEventListener("change",()=>{if(typeSel.value==="Event"&&!subjSel.value)subjSel.value="Other"});
+  let chosen=HEX.test(v.color||"")?v.color.toLowerCase():"";
+  const swatches=$("f-swatches"),pick=$("f-colorPick");
+  const paint=()=>{swatches.querySelectorAll("[data-sw]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.sw===chosen)));const custom=!!chosen&&!EVENT_COLORS.some(([h])=>h===chosen),lab=pick.parentNode;lab.classList.toggle("on",custom);if(custom){lab.style.setProperty("--sw",chosen);pick.value=chosen}else lab.style.removeProperty("--sw")};
+  swatches.addEventListener("click",e=>{const b=e.target.closest("[data-sw]");if(b){chosen=b.dataset.sw;paint()}});
+  pick.addEventListener("input",()=>{chosen=pick.value.toLowerCase();paint()});
+  paint();
+  typeSel.addEventListener("change",()=>{if(typeSel.value==="Event"&&!subjSel.value)subjSel.value="Other";$("f-colorRow").hidden=typeSel.value!=="Event"});
   $("itemForm").addEventListener("submit",async e=>{e.preventDefault();const err=$("f-err");
-    const body={date:$("f-date").value,end:$("f-end").value||"",subject:subjSel.value,name:$("f-name").value.trim(),type:typeSel.value,weight:$("f-weight").value.trim(),notes:$("f-notes").value.trim(),done:$("f-done").checked,updated:Date.now()};
+    const body={date:$("f-date").value,end:$("f-end").value||"",subject:subjSel.value,name:$("f-name").value.trim(),type:typeSel.value,weight:$("f-weight").value.trim(),notes:$("f-notes").value.trim(),done:$("f-done").checked,color:typeSel.value==="Event"&&chosen?chosen:"",updated:Date.now()};
     const miss=[];if(!/^\d{4}-\d{2}-\d{2}$/.test(body.date))miss.push("a date");if(!body.subject)miss.push("a subject");if(!body.name)miss.push("a name");
     if(miss.length){err.textContent="Add "+miss.join(", ").replace(/, ([^,]*)$/," and $1")+" to save.";err.hidden=false;return}
     if(body.end&&body.end<body.date){err.textContent="The end date is before the start date.";err.hidden=false;return}

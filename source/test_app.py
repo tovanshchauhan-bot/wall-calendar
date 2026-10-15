@@ -12,6 +12,7 @@ os.environ.setdefault("PLAYWRIGHT_BROWSERS_PATH", "/opt/pw-browsers")
 from playwright.sync_api import sync_playwright
 
 URL = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8765/"
+SHOTS = os.environ.get("WC_SHOTS")  # optional folder for screenshots
 today = dt.datetime.now(ZoneInfo("Australia/Sydney")).date()
 day = lambda n: (today + dt.timedelta(days=n)).isoformat()
 sample = {"app": "wall-calendar", "version": 1,
@@ -50,6 +51,22 @@ with sync_playwright() as p:
     check(pressed("run") == "true" and "RUN" in train() and re.search(r"RUN \d+ this month 3 last 7 days", train()), "one click ticks a run today")
     pg.click("#addBtn"); pg.fill("#f-date", day(10)); pg.select_option("#f-subject", "Chemistry"); pg.fill("#f-name", "Module test"); pg.click("#f-save"); pg.wait_for_timeout(400)
     check("Module test" in pg.inner_text("#nextup"), "new assessment added through the form")
+
+    # event colours: a picked colour sticks to that event; the Events setting recolours the rest
+    rowc = lambda name: (pg.evaluate("n=>{const r=[...document.querySelectorAll('#view-items tbody tr')].find(t=>t.innerText.includes(n));return r?getComputedStyle(r.querySelector('.subj')).getPropertyValue('--c').trim().toLowerCase():null}", name) or "")
+    pg.click("#addBtn"); pg.fill("#f-date", day(3)); pg.select_option("#f-type", "Event")
+    check(pg.is_visible("#f-colorRow"), "choosing Event shows the colour picker")
+    pg.fill("#f-name", "Sample formal"); pg.click('#f-swatches [data-sw="#8e3b8e"]')
+    if SHOTS: pg.screenshot(path=os.path.join(SHOTS, "event-form.png"))
+    pg.click("#f-save"); pg.wait_for_timeout(400)
+    pg.click("#tab-items"); pg.wait_for_timeout(200)
+    check(rowc("Sample formal") == "#8e3b8e" and rowc("Sample event") == "#2d7a73", "event keeps its picked colour; other events use the default")
+    pg.click("#tab-settings"); pg.evaluate("()=>{const i=document.getElementById('col-event');i.value='#55657a';i.dispatchEvent(new Event('change',{bubbles:true}))}"); pg.wait_for_timeout(200)
+    check(pg.evaluate("!document.getElementById('lg-event').hidden") and pg.inner_text("#lg-other") == "Other", "a separate Events colour gets its own legend entry")
+    pg.click("#tab-items"); pg.wait_for_timeout(200)
+    check(rowc("Sample event") == "#55657a" and rowc("Sample formal") == "#8e3b8e", "changing the Events colour recolours only default-coloured events")
+    pg.click("#tab-calendar"); pg.wait_for_timeout(300)
+    if SHOTS: pg.screenshot(path=os.path.join(SHOTS, "calendar.png"))
     check(squash(pg.inner_text("#sync")) in ("Syncing…", "Synced"), "sync pill online: " + squash(pg.inner_text("#sync")))
 
     pg.evaluate("navigator.serviceWorker.ready.then(() => true)"); pg.reload(); pg.wait_for_timeout(1500)
@@ -59,6 +76,9 @@ with sync_playwright() as p:
     check(pg.is_hidden("#gate") and pg.get_attribute(".day.today", "data-date") == day(0), "OFFLINE: app opens and stays signed in")
     check(re.search(r"RUN \d+ this month 3 last 7 days", train()) and "Module test" in pg.inner_text("#nextup"), "OFFLINE: all data present")
     check(squash(pg.inner_text("#sync")).startswith("Offline"), "OFFLINE: pill says " + squash(pg.inner_text("#sync")))
+    pg.click("#tab-items"); pg.wait_for_timeout(200)
+    check(rowc("Sample formal") == "#8e3b8e", "OFFLINE: event colour kept")
+    pg.click("#tab-calendar"); pg.wait_for_timeout(300)
     pg.click('.day.today .lane[data-act="gym"]'); pg.wait_for_timeout(300)
     pg.reload(); pg.wait_for_timeout(2500)
     check(pressed("gym") == "true" and re.search(r"GYM \d+ this month 4 last 7 days", train()), "OFFLINE: a tick survives closing and reopening")
