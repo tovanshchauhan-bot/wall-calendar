@@ -40,16 +40,18 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{height:100%}
-body{background:var(--paper);color:var(--ink);font:400 14px/1.45 var(--font-ui);-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 14px/1.45 var(--font-ui);-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px}
-.app{padding-inline:clamp(16px,1.8vw,30px);padding-block:14px 18px;display:flex;flex-direction:column;gap:12px;min-height:100%}
+.app{padding-inline:clamp(32px,2.2vw,40px);padding-block:22px 24px;display:flex;flex-direction:column;gap:20px;min-height:100%}
+.view{display:flex;flex-direction:column;gap:20px;min-width:0}
 
 /* header */
-.top{display:flex;align-items:center;gap:14px 18px;flex-wrap:wrap}
-.brand{display:flex;flex-direction:column;gap:4px;min-width:0;margin-right:auto}
-.wordmark{font-family:var(--font-display);font-stretch:125%;font-weight:800;font-size:19px;letter-spacing:.05em;text-transform:uppercase;line-height:1}
-.todayline{color:var(--ink-2);font-size:13px;font-variant-numeric:tabular-nums}
+.top{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px 24px}
+.controls{grid-column:3;justify-self:end;display:flex;align-items:center;gap:12px}
+.brand{grid-column:1;display:flex;flex-direction:column;gap:7px;min-width:0}
+.wordmark{font-family:var(--font-display);font-stretch:125%;font-weight:800;font-size:20px;letter-spacing:.05em;text-transform:uppercase;line-height:1}
+.todayline{color:var(--ink-2);font-size:13px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .todayline b{color:var(--ink);font-weight:600}
 .tabs{display:flex;gap:2px;background:var(--chip);padding:3px;border-radius:9px}
 .tab{border:0;background:transparent;padding:6px 13px;border-radius:7px;font-weight:500;font-size:13px;color:var(--ink-2);cursor:pointer}
@@ -68,22 +70,22 @@ button,input,select,textarea{font:inherit;color:inherit}
 .status.warn{background:var(--u1);color:var(--u1-ink)}
 
 /* calendar bar */
-.calbar{display:flex;align-items:center;gap:12px 18px;flex-wrap:wrap}
-.pager{display:flex;align-items:center;gap:4px}
+.summary{display:flex;align-items:center;justify-content:space-between;gap:12px 40px;flex-wrap:wrap;padding:12px 18px;border:1px solid var(--rule);border-radius:12px;background:var(--panel)}
+.pager{grid-column:2;justify-self:center;display:flex;align-items:center;gap:8px}
 .range{font-weight:600;font-size:14px;min-width:13ch;text-align:center;font-variant-numeric:tabular-nums}
-.seg{display:flex;background:var(--chip);border-radius:8px;padding:2px;margin-left:6px}
+.seg{display:flex;background:var(--chip);border-radius:8px;padding:2px;margin-left:4px}
 .seg button{border:0;background:transparent;padding:4px 9px;border-radius:6px;font-size:12px;font-weight:500;color:var(--ink-2);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
-.nextup{display:flex;align-items:center;gap:8px;flex:1 1 320px;min-width:0;overflow:hidden}
+.nextup{display:flex;align-items:center;gap:10px;flex:1 1 320px;min-width:0;overflow:hidden}
 .lbl{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
-.chip{display:inline-flex;align-items:center;gap:8px;min-width:0;max-width:34ch;padding:3px 4px 3px 10px;border:1px solid var(--rule);border-radius:999px;background:var(--panel);font-size:12.5px;cursor:pointer;white-space:nowrap}
+.chip{display:inline-flex;align-items:center;gap:8px;min-width:0;max-width:34ch;padding:4px 4px 4px 11px;border:1px solid var(--rule);border-radius:999px;background:var(--panel);font-size:12.5px;cursor:pointer;white-space:nowrap}
 .chip:hover{border-color:var(--rule-strong)}
 .chip .dot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--c)}
 .chip .ct{overflow:hidden;text-overflow:ellipsis;min-width:0}
 .cd{flex:none;font-weight:600;font-size:11.5px;padding:2px 8px;border-radius:999px;background:var(--chip);color:var(--ink-2);font-variant-numeric:tabular-nums}
 .cd.u1{background:var(--u1);color:var(--u1-ink)}.cd.u2{background:var(--u2);color:var(--u2-ink)}.cd.u3{background:var(--u3);color:var(--u3-ink)}
 .muted{color:var(--ink-3);font-size:12.5px}
-.train{display:grid;grid-template-columns:repeat(6,auto);justify-content:start;column-gap:16px;row-gap:3px;align-items:center;margin-top:3px;font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.train{display:grid;grid-template-columns:repeat(6,auto);justify-content:start;column-gap:20px;row-gap:7px;align-items:center;font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
 .train b{color:var(--ink);font-weight:600}
 .tk{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
 .tk i{width:12px;height:5px;border-radius:2px;background:var(--a)}
@@ -94,20 +96,20 @@ button,input,select,textarea{font:inherit;color:inherit}
 @media (max-width: 760px){ .train{grid-template-columns:repeat(3,auto)} .train .wide{display:none} }
 
 /* the spread */
-.spread{display:grid;grid-template-columns:repeat(var(--months),minmax(0,1fr));gap:clamp(14px,1.6vw,28px);align-items:start}
+.spread{display:grid;grid-template-columns:repeat(var(--months),minmax(0,1fr));gap:clamp(16px,1.6vw,28px);align-items:start;margin-left:calc(-1*var(--wn))}
 .month{display:flex;flex-direction:column;min-width:0;container-type:inline-size}
-.mhead{margin-left:var(--wn);display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding-bottom:7px;border-bottom:2px solid var(--ink)}
+.mhead{margin-left:var(--wn);display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-bottom:9px;border-bottom:2px solid var(--ink)}
 .mhead h2{margin:0;font-family:var(--font-display);font-stretch:125%;font-weight:800;font-size:clamp(15px,1.4vw,21px);letter-spacing:.05em;text-transform:uppercase;line-height:1;white-space:nowrap}
 .mhead h2 span{font-weight:400;color:var(--ink-3);letter-spacing:.02em}
 .mcap{font-size:12px;font-weight:500;color:var(--ink-3);white-space:nowrap;font-variant-numeric:tabular-nums}
 .mcap.now{color:var(--ink)}
-.mright{display:flex;align-items:baseline;gap:14px;white-space:nowrap}
-.tally{display:inline-flex;align-items:baseline;gap:12px;font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
-.tally>span{display:inline-flex;align-items:center;gap:5px}
-.tally i{width:10px;height:4px;border-radius:2px;background:var(--a)}
+.mright{display:flex;align-items:baseline;gap:18px;white-space:nowrap;line-height:1}
+.tally{display:inline-flex;align-items:baseline;gap:14px;font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.tally>span{display:inline-flex;align-items:baseline;gap:5px}
+.tally i{align-self:center;width:10px;height:4px;border-radius:2px;background:var(--a)}
 .tally b{color:var(--ink);font-weight:600}
 @container (max-width: 400px){ .tally .w{display:none} }
-.wk{display:grid;grid-template-columns:var(--wn) repeat(7,minmax(0,1fr));padding:6px 0 4px}
+.wk{display:grid;grid-template-columns:var(--wn) repeat(7,minmax(0,1fr));padding:11px 0 7px}
 .wk span{padding-left:6px;font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
 .grid{display:grid;grid-template-columns:var(--wn) repeat(7,minmax(0,1fr));grid-auto-rows:minmax(var(--row-min),var(--row))}
 .day.bt{border-top:1px solid var(--rule)}
@@ -118,16 +120,16 @@ button,input,select,textarea{font:inherit;color:inherit}
 .wn.past{color:color-mix(in srgb,var(--ink-3) 55%,var(--paper))}
 .wn.now span{padding:2px 3px;border-radius:3px;background:var(--today);color:var(--today-ink)}
 .termrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
-.termrow .tn{flex:1 1 6rem}
+.termrow .tn{flex:1 1 100%}
 .termrow input[type="date"]{flex:0 0 8.7rem;width:8.7rem}
 .day{position:relative;display:flex;flex-direction:column;min-width:0;overflow:hidden;background:var(--panel);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);cursor:pointer;container-type:inline-size}
 .day.pad{background:var(--pad);cursor:default}
 .day:not(.pad):hover{box-shadow:inset 0 0 0 1px var(--rule-strong)}
 .day.weekend{background:var(--weekend)}
-.dhead{display:flex;align-items:center;gap:4px;padding:4px 4px 2px 6px;min-height:24px}
+.dhead{display:flex;align-items:center;gap:4px;padding:6px 6px 3px 7px;min-height:26px}
 .dnum{font-family:var(--font-display);font-stretch:112%;font-weight:700;font-size:15px;line-height:1;font-variant-numeric:tabular-nums;margin-right:auto}
 .tl{display:none;font-size:8.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-right:auto;margin-left:-2px}
-.items{display:flex;flex-direction:column;gap:3px;padding:2px 3px 4px;min-height:0}
+.items{display:flex;flex-direction:column;gap:3px;padding:2px 4px 4px;min-height:0}
 .pill{--c:var(--c-other);display:block;padding:1px 3px 1px 4px;border-left:3px solid var(--c);border-radius:3px;background:color-mix(in srgb,var(--c) 13%,var(--panel));color:color-mix(in srgb,var(--c) 70%,var(--ink));font:500 11px/1.22 var(--font-cond);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:break-word;word-break:normal;hyphens:auto}
 .compact .pill{-webkit-line-clamp:1}
 .pill .ps{display:none;font-weight:600}
@@ -167,16 +169,6 @@ button,input,select,textarea{font:inherit;color:inherit}
 .day.today .dhead{flex-wrap:wrap;row-gap:2px;padding-bottom:4px}
 .day.today .tl{display:block;order:3;flex-basis:100%;margin:0}
 
-.legend{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-size:12px;color:var(--ink-2);padding-top:2px}
-.legend span{display:inline-flex;align-items:center;gap:6px}
-.sw{width:18px;height:13px;border-radius:2px;border:1px solid var(--rule)}
-.sw.past{background:var(--past) linear-gradient(to top right,transparent 46%,var(--rule-strong) 46%,var(--rule-strong) 54%,transparent 54%)}
-.sw.today{background:var(--today-wash);box-shadow:inset 0 0 0 2px var(--today);border:0}
-.sw.lg{width:24px;height:6px;border:0;border-radius:0;display:grid;grid-template-columns:1fr 1fr;gap:2px;background:none}
-.sw.lg b{border-radius:2px;background:var(--rule)}
-.sw.lg b.ac-gym,.sw.lg b.ac-run{background:var(--a)}
-.sw.wknd{background:var(--weekend)}
-.sw.subj{border:0;border-left:3px solid var(--c);background:color-mix(in srgb,var(--c) 18%,var(--panel))}
 
 /* lists */
 .view-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
@@ -199,7 +191,10 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
 .check{width:17px;height:17px;accent-color:var(--gym);cursor:pointer;vertical-align:middle}
 
 /* settings */
-.settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:16px;align-items:start}
+.settings{columns:4 330px;column-gap:16px}
+.settings>.card{break-inside:avoid;margin:16px 0 0}
+.settings>.card:first-child{margin-top:0}
+.settings>.card.span{column-span:all}
 .card{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .card h3{margin:0;font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2)}
 .card p{margin:0;color:var(--ink-2);font-size:13px}
@@ -208,7 +203,7 @@ td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
 .colors{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
 .colors label{display:flex;align-items:center;gap:8px;font-size:13px}
 input[type="color"]{width:30px;height:24px;border:1px solid var(--rule);border-radius:6px;padding:0;background:none;cursor:pointer}
-.subjrow{display:grid;grid-template-columns:minmax(0,1fr) 9.5rem 1.8rem;gap:6px;align-items:center}
+.subjrow{display:grid;grid-template-columns:minmax(0,1fr) 7.5rem 1.8rem;gap:6px;align-items:center}
 .howto{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:7px;font-size:13px;color:var(--ink-2)}
 .howto b{color:var(--ink);font-weight:600}
 
@@ -235,7 +230,6 @@ input[type="color"]{width:30px;height:24px;border:1px solid var(--rule);border-r
 .swatch.cust{overflow:hidden;background:conic-gradient(#B23A3A,#B7791F,#6B7A2A,#1F7A99,#4C51BF,#8E3B8E,#B23A3A)}
 .swatch.cust.on{background:var(--sw)}
 .swatch.cust input{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;opacity:0;cursor:pointer}
-.sw.subj.ev{border-left-style:dotted}
 .err{color:var(--u3-ink);font-size:12.5px}
 .actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 .actions .left{margin-right:auto}
@@ -252,8 +246,14 @@ input[type="color"]{width:30px;height:24px;border:1px solid var(--rule);border-r
 .act[aria-pressed="true"]:hover{color:var(--on);filter:brightness(1.06)}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:999px;font-size:13px;z-index:60;box-shadow:var(--shadow)}
 
+@media (max-width: 1400px){
+  .top{grid-template-columns:minmax(0,1fr) auto}
+  .controls{grid-column:2}
+  .pager{grid-row:2;grid-column:1/-1;justify-self:start}
+}
 @media (max-width: 980px){
-  .spread{grid-template-columns:minmax(0,1fr)}
+  .app{padding-inline:20px}
+  .spread{grid-template-columns:minmax(0,1fr);margin-left:0}
   .grid{grid-auto-rows:minmax(72px,auto)}
 }
 @media (max-width: 560px){
@@ -268,7 +268,8 @@ input[type="color"]{width:30px;height:24px;border:1px solid var(--rule);border-r
 @media print{
   @page{size:A4 landscape;margin:8mm}
   .top .tabs,.top .btn,.pager .btn,.seg,.status,.toast,.overlay{display:none!important}
-  .app{padding:0}
+  .app{padding:0 0 0 var(--wn);gap:12px}
+  .view{gap:12px}
   .lane:not([aria-pressed="true"]){visibility:hidden}
   .lanes{height:6px!important}
   .hint{display:none}
@@ -282,48 +283,36 @@ input[type="color"]{width:30px;height:24px;border:1px solid var(--rule);border-r
     <div class="brand">
       <div class="wordmark">Wall Calendar</div>
       <div class="todayline" id="todayline">&nbsp;</div>
-      <div class="train" id="train" aria-label="Training"></div>
     </div>
-    <nav class="tabs" role="tablist" aria-label="Views">
-      <button class="tab" role="tab" id="tab-calendar" data-view="calendar" aria-selected="true">Calendar</button>
-      <button class="tab" role="tab" id="tab-upcoming" data-view="upcoming" aria-selected="false">Upcoming</button>
-      <button class="tab" role="tab" id="tab-items" data-view="items" aria-selected="false">Assessments</button>
-      <button class="tab" role="tab" id="tab-settings" data-view="settings" aria-selected="false">Settings</button>
-    </nav>
-    <button class="btn primary" id="addBtn" type="button" data-add="1">+ Add</button>
+    <div class="pager" id="pager">
+      <button class="btn ghost iconbtn" id="prevBtn" type="button" aria-label="Earlier months">‹</button>
+      <span class="range" id="rangeLabel">&nbsp;</span>
+      <button class="btn ghost iconbtn" id="nextBtn" type="button" aria-label="Later months">›</button>
+      <button class="btn" id="todayBtn" type="button">Today</button>
+      <div class="seg" role="group" aria-label="Months shown" id="monthsSeg">
+        <button type="button" data-m="2" aria-pressed="false">2</button>
+        <button type="button" data-m="3" aria-pressed="true">3</button>
+        <button type="button" data-m="4" aria-pressed="false">4</button>
+      </div>
+    </div>
+    <div class="controls">
+      <nav class="tabs" role="tablist" aria-label="Views">
+        <button class="tab" role="tab" id="tab-calendar" data-view="calendar" aria-selected="true">Calendar</button>
+        <button class="tab" role="tab" id="tab-upcoming" data-view="upcoming" aria-selected="false">Upcoming</button>
+        <button class="tab" role="tab" id="tab-items" data-view="items" aria-selected="false">Assessments</button>
+        <button class="tab" role="tab" id="tab-settings" data-view="settings" aria-selected="false">Settings</button>
+      </nav>
+      <button class="btn primary" id="addBtn" type="button" data-add="1">+ Add</button>
+    </div>
   </header>
   <div class="status" id="status" hidden></div>
 
   <section class="view" id="view-calendar" aria-labelledby="tab-calendar">
-    <div class="calbar">
-      <div class="pager">
-        <button class="btn ghost iconbtn" id="prevBtn" type="button" aria-label="Earlier months">‹</button>
-        <span class="range" id="rangeLabel">&nbsp;</span>
-        <button class="btn ghost iconbtn" id="nextBtn" type="button" aria-label="Later months">›</button>
-        <button class="btn" id="todayBtn" type="button">Today</button>
-        <div class="seg" role="group" aria-label="Months shown" id="monthsSeg">
-          <button type="button" data-m="2" aria-pressed="false">2</button>
-          <button type="button" data-m="3" aria-pressed="true">3</button>
-          <button type="button" data-m="4" aria-pressed="false">4</button>
-        </div>
-      </div>
+    <div class="summary">
       <div class="nextup" id="nextup"><span class="lbl">Next up</span><span class="muted">Loading…</span></div>
+      <div class="train" id="train" aria-label="Training"></div>
     </div>
     <div class="spread" id="spread"></div>
-    <div class="legend" id="legend">
-      <span><i class="sw past"></i>Past (crossed off)</span>
-      <span><i class="sw today"></i>Today</span>
-      <span><i class="sw lg"><b class="ac-gym"></b><b></b></i>Gym</span>
-      <span><i class="sw lg"><b></b><b class="ac-run"></b></i>Run</span>
-      <span><i class="sw wknd"></i>Weekend</span>
-      <span><i class="sw subj" style="--c:var(--c-maths)"></i>Maths</span>
-      <span><i class="sw subj" style="--c:var(--c-physics)"></i>Physics</span>
-      <span><i class="sw subj" style="--c:var(--c-chemistry)"></i>Chemistry</span>
-      <span><i class="sw subj" style="--c:var(--c-english)"></i>English</span>
-      <span><i class="sw subj" style="--c:var(--c-other)"></i><span id="lg-other">Other / events</span></span>
-      <span id="lg-event" hidden><i class="sw subj ev" style="--c:var(--c-event)"></i>Events</span>
-      <span class="muted hint">Hover over a day to tick gym or run</span>
-    </div>
   </section>
 
   <section class="view" id="view-upcoming" aria-labelledby="tab-upcoming" hidden></section>
@@ -447,8 +436,7 @@ function upcoming(includeEvents){const t=todayISO();return itemsList().filter(it
   .sort((a,b)=>(a.done?1:0)-(b.done?1:0)||(a.date<b.date?-1:a.date>b.date?1:0)||(sortKey(a)<sortKey(b)?-1:1))}
 function onColor(hex){const n=parseInt(hex.slice(1),16),c=[n>>16&255,n>>8&255,n&255].map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)});return (.2126*c[0]+.7152*c[1]+.0722*c[2])>.2?"#1A1600":"#FFFFFF"}
 function colorDecls(){const o=[...GROUPS.map(([g])=>["--c-"+g,S.settings.colors[g]]),["--c-event",S.settings.colors.event]];for(const [a] of ACTS){const v=S.settings.colors[a];if(v&&v.toLowerCase()!==DEFAULTS.colors[a].toLowerCase())o.push(["--"+a,v],["--on-"+a,onColor(v)])}return o}
-function applyColors(){const r=document.documentElement.style;for(const [a] of ACTS){r.removeProperty("--"+a);r.removeProperty("--on-"+a)}for(const [k,v] of colorDecls())r.setProperty(k,v);
-  const same=String(S.settings.colors.other).toLowerCase()===String(S.settings.colors.event).toLowerCase(),lo=document.getElementById("lg-other"),le=document.getElementById("lg-event");if(lo)lo.textContent=same?"Other / events":"Other";if(le)le.hidden=same}
+function applyColors(){const r=document.documentElement.style;for(const [a] of ACTS){r.removeProperty("--"+a);r.removeProperty("--on-"+a)}for(const [k,v] of colorDecls())r.setProperty(k,v)}
 
 /* ---------- school terms ---------- */
 const mondayOf=s=>addDays(s,-dowMon0(s));
@@ -457,9 +445,9 @@ function termWeek(monday){const sun=addDays(monday,6);for(const x of goodTerms()
 function termOfDay(d){for(const x of goodTerms())if(x.start<=d&&x.end>=d)return {name:x.name||"Term",week:Math.floor(diffDays(mondayOf(x.start),mondayOf(d))/7)+1};return null}
 
 /* ---------- render: header ---------- */
-function renderHeader(){const t=todayISO(),p=parts(t),left=diffDays(t,iso(p.y,12,31))+1,mleft=dim(p.y,p.m)-p.d+1;
+function renderHeader(){const t=todayISO(),p=parts(t),left=diffDays(t,iso(p.y,12,31))+1;
   const tw=termOfDay(t);
-  $("todayline").innerHTML="<b>"+esc(longDate(t))+"</b> · "+(tw?"<b>"+esc(tw.name)+", week "+tw.week+"</b> · ":"")+mleft+" day"+(mleft===1?"":"s")+" left in "+MONTHS[p.m-1]+" · "+left+" left in "+p.y;
+  $("todayline").innerHTML="<b>"+esc(longDate(t))+"</b> · "+(tw?"<b>"+esc(tw.name)+", week "+tw.week+"</b> · ":"")+left+" day"+(left===1?"":"s")+" left in "+p.y;
   $("addBtn").disabled=S.offline;}
 
 /* ---------- render: calendar ---------- */
@@ -509,8 +497,8 @@ function renderTraining(){const t=todayISO(),p=parts(t),m1=iso(p.y,p.m,1);let h=
     h+='<span class="tk ac-'+k+'"><i></i>'+label+"</span><span><b>"+cm+"</b> this month</span><span><b>"+c7+'</b> last 7 days</span><span class="wide"><b>'+c30+'</b> last 30 days</span><span class="wide"><b>'+(c30*7/30).toFixed(1)+'</b> / week</span><span class="strip wide ac-'+k+'" aria-label="'+label+', last 30 days">'+strip+"</span>"}
   $("train").innerHTML=h}
 function sizeRows(){const sp=$("spread");if(window.innerWidth<=980){sp.classList.add("compact");return}
-  const top=sp.getBoundingClientRect().top+window.scrollY,leg=$("legend").offsetHeight||24,head=(sp.querySelector(".mhead")?.offsetHeight||28)+(sp.querySelector(".wk")?.offsetHeight||22);
-  const rows=Math.max(4,...[...sp.querySelectorAll(".grid")].map(g=>g.querySelectorAll(":scope>.wn").length)),avail=window.innerHeight-top-leg-head-40,row=Math.max(76,Math.min(150,Math.floor(avail/rows)));
+  const top=sp.getBoundingClientRect().top+window.scrollY,head=(sp.querySelector(".mhead")?.offsetHeight||28)+(sp.querySelector(".wk")?.offsetHeight||22);
+  const rows=Math.max(4,...[...sp.querySelectorAll(".grid")].map(g=>g.querySelectorAll(":scope>.wn").length)),avail=window.innerHeight-top-head-32,row=Math.max(76,Math.min(150,Math.floor(avail/rows)));
   sp.style.setProperty("--row",row+"px");sp.classList.toggle("compact",row<92)}
 
 /* ---------- render: upcoming ---------- */
@@ -550,7 +538,7 @@ function renderSettings(){const s=S.settings;
   '<div class="card"><h3>Colours</h3><div class="colors">'+colors+'</div><div class="row"><button class="btn" type="button" id="resetColors">Reset colours</button></div></div>'+
   '<div class="card"><h3>Subjects</h3><div class="dlist" style="gap:6px">'+subs+'</div><div class="row"><button class="btn" type="button" id="addSubject">+ Add subject</button></div></div>'+
   '<div class="card"><h3>Backup and printing</h3><p>Download a backup now and then. The printable page opens in your browser, where Cmd+P (or Ctrl+P) prints it landscape.</p><div class="row"><button class="btn" type="button" id="dlJson">Download backup (.json)</button><button class="btn" type="button" id="dlCsv">Assessments (.csv)</button></div><div class="row"><button class="btn" type="button" id="dlPrint">Printable page (.html)</button><label class="btn" for="restoreFile" style="cursor:pointer">Restore from backup…</label><input type="file" id="restoreFile" accept=".json,application/json" hidden></div><div id="restoreMsg"></div></div>'+
-  '<div class="card" style="grid-column:1/-1"><h3>How to use</h3><ol class="howto">'+
+  '<div class="card span"><h3>How to use</h3><ol class="howto">'+
   "<li><b>Gym or run.</b> Hover over a day and click Gym or Run along the bottom of its square (today always shows them). Gym fills the left half green, a run fills the right half gold. Click again to undo.</li>"+
   "<li><b>New assessment.</b> Click + Add, or click the day itself. Date, subject and name are enough; type, weighting and notes are optional. It shows on the calendar and in Upcoming straight away.</li>"+
   "<li><b>Events.</b> Set the type to Event (formal, holiday, birthday, travel) and pick a colour if you like. They show on the calendar with a dotted edge and stay out of Upcoming. For anything longer than a day, add an end date.</li>"+
@@ -562,7 +550,7 @@ function renderSettings(){const s=S.settings;
   "</ol></div></div>"}
 
 /* ---------- master render ---------- */
-function render(){renderHeader();renderTraining();
+function render(){renderHeader();renderTraining();$("pager").hidden=S.view!=="calendar";
   for(const b of document.querySelectorAll(".tab"))b.setAttribute("aria-selected",String(b.dataset.view===S.view));
   for(const v of ["calendar","upcoming","items","settings"])$("view-"+v).hidden=S.view!==v;
   if(S.view==="calendar")renderCalendar();else if(S.view==="upcoming")renderUpcoming();else if(S.view==="items")renderItems();
@@ -626,7 +614,7 @@ function csv(){const q=v=>{v=String(v==null?"":v);return /[",\n]/.test(v)?'"'+v.
   const rows=[["Date","End date","Subject","Name","Type","Weighting","Notes","Completed"]];
   for(const it of itemsList().sort((a,b)=>a.date<b.date?-1:1))rows.push([it.date,it.end||"",it.subject,it.name,it.type,it.weight,it.notes,it.done?"Yes":"No"]);
   return rows.map(r=>r.map(q).join(",")).join("\n")}
-function printable(){const css=$("css").textContent,spread=$("spread").outerHTML,legend=$("legend").outerHTML,range=$("rangeLabel").textContent,fonts=document.querySelector('link[rel="stylesheet"]').href;
+function printable(){const css=$("css").textContent,spread=$("spread").outerHTML,legend="",range=$("rangeLabel").textContent,fonts=document.querySelector('link[rel="stylesheet"]').href;
   const vars=colorDecls().map(([k,v])=>k+":"+v).join(";");
   return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Wall Calendar '+esc(range)+'</title><link rel="stylesheet" href="'+fonts+'"><style>'+css+"\n:root{"+vars+"}\nhtml,body{height:auto}body{margin:0}.app{gap:10px}.lane:not([aria-pressed=\"true\"]){visibility:hidden}.lanes{height:6px!important}.hint{display:none}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.day:not(.pad):hover{box-shadow:none}.spread{--row:84px}@media print{.spread{--row:62px}}</style></head><body><div class=\"app\"><div class=\"top\"><div class=\"brand\"><div class=\"wordmark\">Wall Calendar</div><div class=\"todayline\">"+esc(range)+" · printed "+esc(shortDate(todayISO()))+"</div></div></div>"+spread+legend+"</div></body></html>"}
 async function restore(file){const msg=$("restoreMsg");let data;try{data=JSON.parse(await file.text())}catch(e){msg.innerHTML='<p class="err">That file isn\'t a Wall Calendar backup.</p>';return}

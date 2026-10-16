@@ -44,11 +44,11 @@ FONT_CSS = "\n".join([
 
 # ---------------- CSS ----------------
 css = rep(css, ":root{\n  --paper:#F7F7F4;", ":root{\n  color-scheme:light;\n  --paper:#F7F7F4;")
-css = rep(css, "body{background:var(--paper);", "body{margin:0;background:var(--paper);")
 css = rep(css, "  .hint{display:none}\n", "  .hint,.sync,.gate{display:none!important}\n")
 css = FONT_CSS + "\n" + css + """
 /* app-only: sign-in gate and sync status */
-.sync{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;background:var(--chip);color:var(--ink-2);font-size:12px;font-weight:500;white-space:nowrap}
+.titlerow{display:flex;align-items:center;gap:12px;min-width:0}
+.sync{display:inline-flex;align-items:center;gap:7px;padding:3px 10px;border-radius:999px;background:var(--chip);color:var(--ink-2);font-size:12px;line-height:1.2;font-weight:500;white-space:nowrap}
 .sync i{width:7px;height:7px;border-radius:50%;background:var(--gym)}
 .sync.pending i{background:var(--ink-3)}
 .sync.off i{background:var(--run)}
@@ -66,8 +66,8 @@ css = FONT_CSS + "\n" + css + """
 """
 
 # ---------------- markup ----------------
-markup = rep(markup, '    <nav class="tabs" role="tablist" aria-label="Views">',
-             '    <span class="sync" id="sync" role="status" hidden></span>\n    <nav class="tabs" role="tablist" aria-label="Views">')
+markup = rep(markup, '      <div class="wordmark">Wall Calendar</div>\n',
+             '      <div class="titlerow"><div class="wordmark">Wall Calendar</div><span class="sync" id="sync" role="status" hidden></span></div>\n')
 GATE = """<div class="gate" id="gate" hidden>
   <div class="gatecard">
     <div class="week" aria-hidden="true"><span class="p"><b class="g"></b></span><span class="p"><b class="r"></b></span><span class="p"><b class="g"></b><b class="r"></b></span><span class="p"></span><span class="p"><b class="g"></b></span><span class="t"></span><span></span></div>

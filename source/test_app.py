@@ -44,6 +44,17 @@ with sync_playwright() as p:
         out.counts.push([ds.length,new Date(y,m,0).getDate(),ds[0].endsWith('-01')]);
         days.forEach(c=>{const w=(new Date(c.dataset.date+'T12:00:00').getDay()+6)%7;if(Math.abs(c.getBoundingClientRect().left-hs[w])>2)out.bad.push(c.dataset.date)})});return out}""")
     check(layout["pads"] == 0 and not layout["bad"] and all(c[0] == c[1] and c[2] for c in layout["counts"]), "each month shows only its own days, each under the right weekday: " + str(layout["counts"]))
+    edges = pg.evaluate("""()=>{const r=s=>document.querySelector(s).getBoundingClientRect(),g=[...document.querySelectorAll('.mhead')],a=r('.top'),b=r('.summary');
+      const L=Math.min(...g.map(x=>x.getBoundingClientRect().left)),R=Math.max(...g.map(x=>x.getBoundingClientRect().right));
+      return {top:[a.left,a.right],summary:[b.left,b.right],grid:[L,R],legend:!!document.getElementById('legend'),fits:document.documentElement.scrollHeight<=innerHeight+1}}""")
+    same = lambda x, y: abs(x[0] - y[0]) <= 1.5 and abs(x[1] - y[1]) <= 1.5
+    check(not edges["legend"] and same(edges["top"], edges["summary"]) and same(edges["summary"], edges["grid"]), "no legend; header, summary and calendar share the same left and right edges: " + str(edges))
+    check(edges["fits"], "the calendar fits the window without scrolling at 1440 x 860")
+    hdr = lambda: pg.evaluate("""()=>{const r=s=>document.querySelector(s).getBoundingClientRect(),t=r('.top'),p=document.getElementById('pager'),c=r('.controls'),tl=document.getElementById('todayline'),tr=document.querySelector('.titlerow');
+      return {apart:p.hidden||(r('.brand').right<=p.getBoundingClientRect().left&&p.getBoundingClientRect().right<=c.left),tabsRight:Math.abs(c.right-t.right)<1.5,pagerShown:!p.hidden,
+        textFits:tl.scrollWidth<=tl.clientWidth&&(!tr||tr.scrollWidth<=tr.clientWidth)}}""")
+    h = hdr()
+    check(h["apart"] and h["tabsRight"] and h["textFits"] and h["pagerShown"], "header: title, month controls and tabs sit apart, nothing cut off: " + str(h))
 
     pg.click("#tab-settings"); pg.set_input_files("#restoreFile", BACKUP); pg.wait_for_selector("#doRestore")
     found = squash(pg.inner_text("#restoreMsg")); pg.click("#doRestore")
@@ -68,7 +79,6 @@ with sync_playwright() as p:
     pg.click("#tab-items"); pg.wait_for_timeout(200)
     check(rowc("Sample formal") == "#8e3b8e" and rowc("Sample event") == "#2d7a73", "event keeps its picked colour; other events use the default")
     pg.click("#tab-settings"); pg.evaluate("()=>{const i=document.getElementById('col-event');i.value='#55657a';i.dispatchEvent(new Event('change',{bubbles:true}))}"); pg.wait_for_timeout(200)
-    check(pg.evaluate("!document.getElementById('lg-event').hidden") and pg.inner_text("#lg-other") == "Other", "a separate Events colour gets its own legend entry")
     pg.click("#tab-items"); pg.wait_for_timeout(200)
     check(rowc("Sample event") == "#55657a" and rowc("Sample formal") == "#8e3b8e", "changing the Events colour recolours only default-coloured events")
     pg.click("#tab-calendar"); pg.wait_for_timeout(300)
@@ -77,6 +87,7 @@ with sync_playwright() as p:
     mon = today - dt.timedelta(days=today.weekday())
     tstart, tend = (mon - dt.timedelta(days=14)).isoformat(), (mon + dt.timedelta(days=48)).isoformat()
     pg.click("#tab-settings"); pg.wait_for_timeout(150)
+    h = hdr(); check(h["tabsRight"] and not h["pagerShown"], "on other tabs the month controls hide and the tabs stay on the right: " + str(h))
     pg.evaluate("([a,b])=>{for(const [id,v] of [['term-name-0','Test term'],['term-start-0',a],['term-end-0',b]]){const i=document.getElementById(id);i.value=v;i.dispatchEvent(new Event('change',{bubbles:true}))}}", [tstart, tend])
     pg.click("#tab-calendar"); pg.wait_for_timeout(300)
     wn = pg.evaluate("()=>{let p=document.querySelector('.day.today');while(p&&!p.classList.contains('wn'))p=p.previousElementSibling;return p?[p.innerText.trim(),p.className]:null}")
