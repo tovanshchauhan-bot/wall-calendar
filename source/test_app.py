@@ -66,6 +66,16 @@ with sync_playwright() as p:
     pg.click("#tab-items"); pg.wait_for_timeout(200)
     check(rowc("Sample event") == "#55657a" and rowc("Sample formal") == "#8e3b8e", "changing the Events colour recolours only default-coloured events")
     pg.click("#tab-calendar"); pg.wait_for_timeout(300)
+
+    # term weeks: point the first term at dates where today falls in week 3
+    mon = today - dt.timedelta(days=today.weekday())
+    tstart, tend = (mon - dt.timedelta(days=14)).isoformat(), (mon + dt.timedelta(days=48)).isoformat()
+    pg.click("#tab-settings"); pg.wait_for_timeout(150)
+    pg.evaluate("([a,b])=>{for(const [id,v] of [['term-name-0','Test term'],['term-start-0',a],['term-end-0',b]]){const i=document.getElementById(id);i.value=v;i.dispatchEvent(new Event('change',{bubbles:true}))}}", [tstart, tend])
+    pg.click("#tab-calendar"); pg.wait_for_timeout(300)
+    wn = pg.evaluate("()=>{let p=document.querySelector('.day.today');while(p&&!p.classList.contains('wn'))p=p.previousElementSibling;return p?[p.innerText.trim(),p.className]:null}")
+    check(bool(wn) and wn[0] == "W3" and "now" in wn[1], "term week shows in the margin beside today's week: " + str(wn))
+    check("Test term, week 3" in pg.inner_text("#todayline"), "today's line shows the term week")
     if SHOTS: pg.screenshot(path=os.path.join(SHOTS, "calendar.png"))
     check(squash(pg.inner_text("#sync")) in ("Syncing…", "Synced"), "sync pill online: " + squash(pg.inner_text("#sync")))
 

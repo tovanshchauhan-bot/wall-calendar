@@ -17,7 +17,7 @@
   --font-display:"Archivo","Helvetica Neue",Arial,sans-serif;
   --font-ui:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
   --font-cond:"IBM Plex Sans Condensed","Arial Narrow","Helvetica Neue",Arial,sans-serif;
-  --row:96px; --row-min:76px; --months:3;
+  --row:96px; --row-min:76px; --months:3; --wn:24px;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
   --paper:#121417; --panel:#1A1D21; --pad:#16181B; --chip:#24282D;
@@ -96,7 +96,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* the spread */
 .spread{display:grid;grid-template-columns:repeat(var(--months),minmax(0,1fr));gap:clamp(14px,1.6vw,28px);align-items:start}
 .month{display:flex;flex-direction:column;min-width:0;container-type:inline-size}
-.mhead{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding-bottom:7px;border-bottom:2px solid var(--ink)}
+.mhead{margin-left:var(--wn);display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding-bottom:7px;border-bottom:2px solid var(--ink)}
 .mhead h2{margin:0;font-family:var(--font-display);font-stretch:125%;font-weight:800;font-size:clamp(15px,1.4vw,21px);letter-spacing:.05em;text-transform:uppercase;line-height:1;white-space:nowrap}
 .mhead h2 span{font-weight:400;color:var(--ink-3);letter-spacing:.02em}
 .mcap{font-size:12px;font-weight:500;color:var(--ink-3);white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -107,9 +107,19 @@ button,input,select,textarea{font:inherit;color:inherit}
 .tally i{width:10px;height:4px;border-radius:2px;background:var(--a)}
 .tally b{color:var(--ink);font-weight:600}
 @container (max-width: 400px){ .tally .w{display:none} }
-.wk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));padding:6px 0 4px}
+.wk{display:grid;grid-template-columns:var(--wn) repeat(7,minmax(0,1fr));padding:6px 0 4px}
 .wk span{padding-left:6px;font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
-.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-auto-rows:minmax(var(--row-min),var(--row));border-top:1px solid var(--rule);border-left:1px solid var(--rule)}
+.grid{display:grid;grid-template-columns:var(--wn) repeat(7,minmax(0,1fr));grid-auto-rows:minmax(var(--row-min),var(--row))}
+.grid>.day:nth-child(-n+8){border-top:1px solid var(--rule)}
+.grid>.day:nth-child(8n+2){border-left:1px solid var(--rule)}
+.wk .wkg{padding:0 5px 0 0;text-align:right;letter-spacing:.04em}
+.wn{display:flex;justify-content:flex-end;align-items:flex-start;padding:6px 4px 0 0;font:700 9px/1 var(--font-ui);letter-spacing:.02em;color:var(--ink-3);font-variant-numeric:tabular-nums;white-space:nowrap;cursor:default}
+.wn span{padding:2px 2px}
+.wn.past{color:color-mix(in srgb,var(--ink-3) 55%,var(--paper))}
+.wn.now span{padding:2px 3px;border-radius:3px;background:var(--today);color:var(--today-ink)}
+.termrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.termrow .tn{flex:1 1 6rem}
+.termrow input[type="date"]{flex:0 0 8.7rem;width:8.7rem}
 .day{position:relative;display:flex;flex-direction:column;min-width:0;overflow:hidden;background:var(--panel);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);cursor:pointer;container-type:inline-size}
 .day.pad{background:var(--pad);cursor:default}
 .day:not(.pad):hover{box-shadow:inset 0 0 0 1px var(--rule-strong)}
@@ -357,6 +367,7 @@ const ACTS=[["gym","Gym"],["run","Run"]];
 const TIP={gym:["Went to the gym? Click to tick","Gym done. Click to undo"],run:["Went for a run? Click to tick","Run done. Click to undo"]};
 const TYPES=["Assessment Task","Exam","Assignment","Trial","HSC Exam","Homework","Presentation","Event","Other"];
 const DEFAULTS={startMonth:"2026-10",months:3,
+  terms:[{name:"Term 4",start:"2026-10-12",end:"2026-12-09"}],
   colors:{maths:"#2F5D9E",physics:"#6A4C9C",chemistry:"#B5651D",english:"#A33B5B",other:"#2D7A73",event:"#2D7A73",gym:"#2E7D4F",run:"#D0A21C"},
   subjects:[{name:"Mathematics Advanced",short:"Maths Adv",group:"maths"},{name:"Mathematics Extension 1",short:"Ext 1",group:"maths"},
     {name:"Mathematics Extension 2",short:"Ext 2",group:"maths"},{name:"Physics",short:"Physics",group:"physics"},
@@ -365,6 +376,7 @@ const clone=o=>JSON.parse(JSON.stringify(o));
 function mergeSettings(d){const s=clone(DEFAULTS);if(!d||typeof d!=="object")return s;
   if(/^\d{4}-\d{2}$/.test(d.startMonth||""))s.startMonth=d.startMonth;
   if([2,3,4].includes(d.months))s.months=d.months;
+  if(Array.isArray(d.terms)){const ok=v=>/^\d{4}-\d{2}-\d{2}$/.test(v||"")?v:"";s.terms=d.terms.filter(x=>x&&typeof x==="object").slice(0,24).map(x=>({name:String(x.name||"").slice(0,24),start:ok(x.start),end:ok(x.end)}))}
   if(d.colors&&typeof d.colors==="object")for(const k of Object.keys(s.colors))if(/^#[0-9a-fA-F]{6}$/.test(d.colors[k]||""))s.colors[k]=d.colors[k];
   if(Array.isArray(d.subjects)&&d.subjects.length){const list=d.subjects.filter(x=>x&&typeof x.name==="string"&&x.name.trim()).map(x=>({name:x.name.trim().slice(0,60),short:String(x.short||x.name).trim().slice(0,14),group:GROUPS.some(g=>g[0]===x.group)?x.group:"other"}));if(list.length)s.subjects=list}
   return s}
@@ -438,9 +450,16 @@ function colorDecls(){const o=[...GROUPS.map(([g])=>["--c-"+g,S.settings.colors[
 function applyColors(){const r=document.documentElement.style;for(const [a] of ACTS){r.removeProperty("--"+a);r.removeProperty("--on-"+a)}for(const [k,v] of colorDecls())r.setProperty(k,v);
   const same=String(S.settings.colors.other).toLowerCase()===String(S.settings.colors.event).toLowerCase(),lo=document.getElementById("lg-other"),le=document.getElementById("lg-event");if(lo)lo.textContent=same?"Other / events":"Other";if(le)le.hidden=same}
 
+/* ---------- school terms ---------- */
+const mondayOf=s=>addDays(s,-dowMon0(s));
+const goodTerms=()=>(S.settings.terms||[]).filter(x=>x.start&&x.end&&x.end>=x.start);
+function termWeek(monday){const sun=addDays(monday,6);for(const x of goodTerms())if(x.start<=sun&&x.end>=monday)return {name:x.name||"Term",week:Math.floor(diffDays(mondayOf(x.start),monday)/7)+1};return null}
+function termOfDay(d){for(const x of goodTerms())if(x.start<=d&&x.end>=d)return {name:x.name||"Term",week:Math.floor(diffDays(mondayOf(x.start),mondayOf(d))/7)+1};return null}
+
 /* ---------- render: header ---------- */
 function renderHeader(){const t=todayISO(),p=parts(t),left=diffDays(t,iso(p.y,12,31))+1,mleft=dim(p.y,p.m)-p.d+1;
-  $("todayline").innerHTML="<b>"+esc(longDate(t))+"</b> · "+mleft+" day"+(mleft===1?"":"s")+" left in "+MONTHS[p.m-1]+" · "+left+" left in "+p.y;
+  const tw=termOfDay(t);
+  $("todayline").innerHTML="<b>"+esc(longDate(t))+"</b> · "+(tw?"<b>"+esc(tw.name)+", week "+tw.week+"</b> · ":"")+mleft+" day"+(mleft===1?"":"s")+" left in "+MONTHS[p.m-1]+" · "+left+" left in "+p.y;
   $("addBtn").disabled=S.offline;}
 
 /* ---------- render: calendar ---------- */
@@ -457,8 +476,11 @@ function renderCalendar(){
     if(t>e)cap="Done ✓";else if(t>=f){const n=diffDays(t,e)+1;cap=n+" day"+(n===1?"":"s")+" left";capCls+=" now"}
     let tally="";if(t>=f){const end=t<e?t:e;tally='<span class="tally" title="Gym and run days this month">'+ACTS.map(([k,l])=>'<span class="ac-'+k+'"><i></i><span class="w">'+l+'</span><b>'+actCount(k,f,end)+"</b></span>").join("")+"</span>"}
     html+='<article class="month" aria-label="'+MONTHS[m-1]+" "+y+'"><div class="mhead"><h2>'+MONTHS[m-1]+" <span>"+y+'</span></h2><div class="mright">'+tally+'<span class="'+capCls+'">'+cap+"</span></div></div>";
-    html+='<div class="wk" aria-hidden="true">'+DOW3.map(d=>"<span>"+d+"</span>").join("")+'</div><div class="grid">';
-    for(const d of monthCells(y,m)){
+    const cells=monthCells(y,m),m0=mondayOf(f),rows=[0,1,2,3,4,5].map(r=>{const mon=addDays(m0,7*r),days=cells.slice(7*r,7*r+7);return {mon,days,tw:days.some(Boolean)?termWeek(mon):null}});
+    html+='<div class="wk" aria-hidden="true"><span class="wkg">'+(rows.some(r=>r.tw)?"Wk":"")+"</span>"+DOW3.map(d=>"<span>"+d+"</span>").join("")+'</div><div class="grid">';
+    for(const row of rows){const sun=addDays(row.mon,6);
+      html+=row.tw?'<div class="wn'+(t>=row.mon&&t<=sun?" now":sun<t?" past":"")+'" title="'+esc(row.tw.name)+", week "+row.tw.week+'"><span>W'+row.tw.week+"</span></div>":'<div class="wn" aria-hidden="true"></div>';
+    for(const d of row.days){
       if(!d){html+='<div class="day pad" aria-hidden="true"></div>';continue}
       const cls=["day"],w=dowMon0(d);if(w>=5)cls.push("weekend");
       if(d<t)cls.push("past");else if(d===t)cls.push("today");
@@ -470,7 +492,7 @@ function renderCalendar(){
         pills+='<span class="pill'+(ev?" ev":"")+(it.done?" done":"")+'" style="--c:'+itemColor(it)+'" title="'+esc(tip)+'"><span class="ps">'+esc(ev?"":si.short+" · ")+"</span>"+esc(it.name||"(untitled)")+"</span>"});
       if(list.length>shown)pills+='<span class="more">+'+(list.length-shown)+" more</span>";
       const label=longDate(d)+(d===t?", today":"")+(gym?", gym done":"")+(run?", run done":"")+(list.length?", "+list.length+" item"+(list.length>1?"s":""):"");
-      html+='<div class="'+cls.join(" ")+'" data-date="'+d+'" tabindex="0" role="button" aria-label="'+esc(label)+'"><div class="dhead"><span class="dnum">'+parts(d).d+'</span><span class="tl">Today</span></div><div class="items">'+pills+"</div>"+lanes+"</div>"}
+      html+='<div class="'+cls.join(" ")+'" data-date="'+d+'" tabindex="0" role="button" aria-label="'+esc(label)+'"><div class="dhead"><span class="dnum">'+parts(d).d+'</span><span class="tl">Today</span></div><div class="items">'+pills+"</div>"+lanes+"</div>"}}
     html+="</div></article>"}
   spread.innerHTML=html;
   renderNextUp();sizeRows();}
@@ -523,6 +545,7 @@ function renderSettings(){const s=S.settings;
   const subs=s.subjects.map((x,i)=>'<div class="subjrow"><input class="inp" id="sname-'+i+'" data-sname="'+i+'" value="'+esc(x.name)+'" aria-label="Subject name"><select class="inp" id="sgroup-'+i+'" data-sgroup="'+i+'" aria-label="Colour">'+GROUPS.map(([g,l])=>'<option value="'+g+'"'+(x.group===g?" selected":"")+">"+l+"</option>").join("")+'</select><button class="btn ghost iconbtn" type="button" data-sdel="'+i+'" aria-label="Remove '+esc(x.name)+'">×</button></div>').join("");
   $("view-settings").innerHTML='<div class="view-head"><div><h1>Settings</h1><p>Changes save automatically.</p></div></div><div class="settings">'+
   '<div class="card"><h3>Calendar</h3><div class="row"><label for="startMonth">Start month</label><input class="inp" style="width:auto" type="month" id="startMonth" value="'+s.startMonth+'"></div><p>Sets where each page of months begins. With 3 months shown, October starts the pages: Oct–Dec, Jan–Mar, and so on. The calendar turns the page by itself when a new block begins.</p></div>'+
+  '<div class="card"><h3>School terms</h3><div class="dlist" style="gap:6px">'+(s.terms.length?s.terms.map((x,i)=>'<div class="termrow"><input class="inp tn" id="term-name-'+i+'" data-tname="'+i+'" value="'+esc(x.name)+'" placeholder="Term 1" maxlength="24" aria-label="Term name"><input class="inp" type="date" id="term-start-'+i+'" data-tstart="'+i+'" value="'+esc(x.start)+'" aria-label="First day"><span class="muted">to</span><input class="inp" type="date" id="term-end-'+i+'" data-tend="'+i+'" value="'+esc(x.end)+'" aria-label="Last day"><button class="btn ghost iconbtn" type="button" data-tdel="'+i+'" aria-label="Remove '+esc(x.name||"term")+'">×</button></div>').join(""):'<p class="muted" style="margin:0">No terms yet.</p>')+'</div><div class="row"><button class="btn" type="button" id="addTerm">+ Add term</button></div><p>Week numbers show in the margin beside each week of a term, and next to today\'s date. Week 1 is the week the term starts.</p></div>'+
   '<div class="card"><h3>Colours</h3><div class="colors">'+colors+'</div><div class="row"><button class="btn" type="button" id="resetColors">Reset colours</button></div></div>'+
   '<div class="card"><h3>Subjects</h3><div class="dlist" style="gap:6px">'+subs+'</div><div class="row"><button class="btn" type="button" id="addSubject">+ Add subject</button></div></div>'+
   '<div class="card"><h3>Backup and printing</h3><p>Download a backup now and then. The printable page opens in your browser, where Cmd+P (or Ctrl+P) prints it landscape.</p><div class="row"><button class="btn" type="button" id="dlJson">Download backup (.json)</button><button class="btn" type="button" id="dlCsv">Assessments (.csv)</button></div><div class="row"><button class="btn" type="button" id="dlPrint">Printable page (.html)</button><label class="btn" for="restoreFile" style="cursor:pointer">Restore from backup…</label><input type="file" id="restoreFile" accept=".json,application/json" hidden></div><div id="restoreMsg"></div></div>'+
@@ -532,6 +555,7 @@ function renderSettings(){const s=S.settings;
   "<li><b>Events.</b> Set the type to Event (formal, holiday, birthday, travel) and pick a colour if you like. They show on the calendar with a dotted edge and stay out of Upcoming. For anything longer than a day, add an end date.</li>"+
   "<li><b>Finished.</b> Tick Done in Upcoming, the day view or Assessments. It stays in your record, struck through.</li>"+
   "<li><b>Automatic.</b> At midnight yesterday greys out and gets crossed off, today moves on, and the month captions, countdowns and gym totals update. Nothing to maintain.</li>"+
+  "<li><b>Term weeks.</b> During school terms the week number shows in the margin beside each week and next to today's date. Add next year's terms under School terms.</li>"+
   "<li><b>Later months.</b> Use ‹ and › to turn pages, and Today to come back. There's no end date and nothing to extend or reset each year.</li>"+
   "<li><b>Colours.</b> Change subject, event, gym and run colours under Colours above. Each event can also have its own colour, picked when you add or edit it. Add or rename subjects under Subjects.</li>"+
   "</ol></div></div>"}
@@ -632,6 +656,7 @@ document.addEventListener("change",e=>{const t=e.target;
   if(t.dataset.done){toggleDone(t.dataset.done);return}
   if(t.id==="evToggle"){showEvents=t.checked;renderUpcoming();return}
   if(t.id==="startMonth"&&/^\d{4}-\d{2}$/.test(t.value)){S.settings.startMonth=t.value;S.offset=0;saveSettings();return}
+  for(const [attr,key] of [["tname","name"],["tstart","start"],["tend","end"]])if(t.dataset[attr]!==undefined){const x=S.settings.terms[+t.dataset[attr]];if(x){x[key]=key==="name"?t.value.trim().slice(0,24):(t.value||"");saveSettings()}return}
   if(t.dataset.color){S.settings.colors[t.dataset.color]=t.value;saveSettings();return}
   if(t.dataset.sname!==undefined){const v=t.value.trim().slice(0,60);const s=S.settings.subjects[+t.dataset.sname];if(v&&s&&v!==s.name){const old=s.name;s.name=v;s.short=v.slice(0,14);saveSettings();renameItems(old,v)}return}
   if(t.dataset.sgroup!==undefined){S.settings.subjects[+t.dataset.sgroup].group=t.value;saveSettings();return}
@@ -649,6 +674,10 @@ $("overlay").addEventListener("click",e=>{if(e.target.id==="overlay")closeModal(
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("overlay").hidden){closeModal();return}
   const d=e.target.closest&&e.target.closest(".day[data-date]");if(d&&(e.key==="Enter"||e.key===" ")&&e.target===d){e.preventDefault();openDay(d.dataset.date)}});
 let rz;window.addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{if(S.view==="calendar")sizeRows()},120)});
+
+document.addEventListener("click",e=>{const b=e.target.closest("[data-tdel],#addTerm");if(!b)return;
+  if(b.id==="addTerm"){S.settings.terms.push({name:"",start:"",end:""});saveSettings();renderSettings();const i=S.settings.terms.length-1;setTimeout(()=>{const n=$("term-name-"+i);n&&n.focus()},0);return}
+  S.settings.terms.splice(+b.dataset.tdel,1);saveSettings();renderSettings()});
 
 /* ---------- the day turns over by itself ---------- */
 let lastDay=todayISO();
