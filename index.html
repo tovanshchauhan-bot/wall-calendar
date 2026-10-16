@@ -129,8 +129,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 .wk{display:grid;grid-template-columns:var(--wn) repeat(7,minmax(0,1fr));padding:6px 0 4px}
 .wk span{padding-left:6px;font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
 .grid{display:grid;grid-template-columns:var(--wn) repeat(7,minmax(0,1fr));grid-auto-rows:minmax(var(--row-min),var(--row))}
-.grid>.day:nth-child(-n+8){border-top:1px solid var(--rule)}
-.grid>.day:nth-child(8n+2){border-left:1px solid var(--rule)}
+.day.bt{border-top:1px solid var(--rule)}
+.day.bl{border-left:1px solid var(--rule)}
 .wk .wkg{padding:0 5px 0 0;text-align:right;letter-spacing:.04em}
 .wn{display:flex;justify-content:flex-end;align-items:flex-start;padding:6px 4px 0 0;font:700 9px/1 var(--font-ui);letter-spacing:.02em;color:var(--ink-3);font-variant-numeric:tabular-nums;white-space:nowrap;cursor:default}
 .wn span{padding:2px 2px}
@@ -383,6 +383,6 @@ input[type="color"]{width:30px;height:24px;border:1px solid var(--rule);border-r
 <div class="overlay" id="overlay" hidden><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
 <div class="toast" id="toast" hidden></div>
 <script src="config.js?v=3e4a4910ec"></script>
-<script type="module" src="app.js?v=a83c5e2dfa"></script>
+<script type="module" src="app.js?v=f7eb029a29"></script>
 </body>
 </html>

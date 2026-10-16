@@ -110,8 +110,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 .wk{display:grid;grid-template-columns:var(--wn) repeat(7,minmax(0,1fr));padding:6px 0 4px}
 .wk span{padding-left:6px;font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
 .grid{display:grid;grid-template-columns:var(--wn) repeat(7,minmax(0,1fr));grid-auto-rows:minmax(var(--row-min),var(--row))}
-.grid>.day:nth-child(-n+8){border-top:1px solid var(--rule)}
-.grid>.day:nth-child(8n+2){border-left:1px solid var(--rule)}
+.day.bt{border-top:1px solid var(--rule)}
+.day.bl{border-left:1px solid var(--rule)}
 .wk .wkg{padding:0 5px 0 0;text-align:right;letter-spacing:.04em}
 .wn{display:flex;justify-content:flex-end;align-items:flex-start;padding:6px 4px 0 0;font:700 9px/1 var(--font-ui);letter-spacing:.02em;color:var(--ink-3);font-variant-numeric:tabular-nums;white-space:nowrap;cursor:default}
 .wn span{padding:2px 2px}
@@ -476,13 +476,14 @@ function renderCalendar(){
     if(t>e)cap="Done ✓";else if(t>=f){const n=diffDays(t,e)+1;cap=n+" day"+(n===1?"":"s")+" left";capCls+=" now"}
     let tally="";if(t>=f){const end=t<e?t:e;tally='<span class="tally" title="Gym and run days this month">'+ACTS.map(([k,l])=>'<span class="ac-'+k+'"><i></i><span class="w">'+l+'</span><b>'+actCount(k,f,end)+"</b></span>").join("")+"</span>"}
     html+='<article class="month" aria-label="'+MONTHS[m-1]+" "+y+'"><div class="mhead"><h2>'+MONTHS[m-1]+" <span>"+y+'</span></h2><div class="mright">'+tally+'<span class="'+capCls+'">'+cap+"</span></div></div>";
-    const cells=monthCells(y,m),m0=mondayOf(f),rows=[0,1,2,3,4,5].map(r=>{const mon=addDays(m0,7*r),days=cells.slice(7*r,7*r+7);return {mon,days,tw:days.some(Boolean)?termWeek(mon):null}});
+    const cells=monthCells(y,m),m0=mondayOf(f),rows=[0,1,2,3,4,5].map(r=>{const mon=addDays(m0,7*r),days=cells.slice(7*r,7*r+7);return {mon,days,tw:termWeek(mon)}}).filter(r=>r.days.some(Boolean));
     html+='<div class="wk" aria-hidden="true"><span class="wkg">'+(rows.some(r=>r.tw)?"Wk":"")+"</span>"+DOW3.map(d=>"<span>"+d+"</span>").join("")+'</div><div class="grid">';
     for(const row of rows){const sun=addDays(row.mon,6);
       html+=row.tw?'<div class="wn'+(t>=row.mon&&t<=sun?" now":sun<t?" past":"")+'" title="'+esc(row.tw.name)+", week "+row.tw.week+'"><span>W'+row.tw.week+"</span></div>":'<div class="wn" aria-hidden="true"></div>';
     for(const d of row.days){
-      if(!d){html+='<div class="day pad" aria-hidden="true"></div>';continue}
-      const cls=["day"],w=dowMon0(d);if(w>=5)cls.push("weekend");
+      if(!d)continue;
+      const cls=["day"],w=dowMon0(d),dnum=parts(d).d;if(w>=5)cls.push("weekend");
+      if(dnum<=7)cls.push("bt");if(w===0||dnum===1)cls.push("bl");
       if(d<t)cls.push("past");else if(d===t)cls.push("today");
       const gym=S.gym.has(d),run=S.run.has(d),list=byDate.get(d)||[];
       let lanes="";if(d<=t){cls.push("has-lanes");lanes='<div class="lanes">'+ACTS.map(([k,l])=>{const on=S[k].has(d);return '<button type="button" class="lane ac-'+k+'" data-act="'+k+'" data-date="'+d+'" aria-pressed="'+on+'" aria-label="'+l+" on "+esc(shortDate(d))+(on?": done":": not ticked")+'" title="'+esc(TIP[k][on?1:0])+'"><span class="f">'+l+'</span><span class="s">'+l[0]+"</span></button>"}).join("")+"</div>"}
@@ -492,7 +493,7 @@ function renderCalendar(){
         pills+='<span class="pill'+(ev?" ev":"")+(it.done?" done":"")+'" style="--c:'+itemColor(it)+'" title="'+esc(tip)+'"><span class="ps">'+esc(ev?"":si.short+" · ")+"</span>"+esc(it.name||"(untitled)")+"</span>"});
       if(list.length>shown)pills+='<span class="more">+'+(list.length-shown)+" more</span>";
       const label=longDate(d)+(d===t?", today":"")+(gym?", gym done":"")+(run?", run done":"")+(list.length?", "+list.length+" item"+(list.length>1?"s":""):"");
-      html+='<div class="'+cls.join(" ")+'" data-date="'+d+'" tabindex="0" role="button" aria-label="'+esc(label)+'"><div class="dhead"><span class="dnum">'+parts(d).d+'</span><span class="tl">Today</span></div><div class="items">'+pills+"</div>"+lanes+"</div>"}}
+      html+='<div class="'+cls.join(" ")+'" data-date="'+d+'"'+(dnum===1?' style="grid-column-start:'+(w+2)+'"':"")+' tabindex="0" role="button" aria-label="'+esc(label)+'"><div class="dhead"><span class="dnum">'+parts(d).d+'</span><span class="tl">Today</span></div><div class="items">'+pills+"</div>"+lanes+"</div>"}}
     html+="</div></article>"}
   spread.innerHTML=html;
   renderNextUp();sizeRows();}
@@ -509,7 +510,7 @@ function renderTraining(){const t=todayISO(),p=parts(t),m1=iso(p.y,p.m,1);let h=
   $("train").innerHTML=h}
 function sizeRows(){const sp=$("spread");if(window.innerWidth<=980){sp.classList.add("compact");return}
   const top=sp.getBoundingClientRect().top+window.scrollY,leg=$("legend").offsetHeight||24,head=(sp.querySelector(".mhead")?.offsetHeight||28)+(sp.querySelector(".wk")?.offsetHeight||22);
-  const avail=window.innerHeight-top-leg-head-40,row=Math.max(76,Math.min(150,Math.floor(avail/6)));
+  const rows=Math.max(4,...[...sp.querySelectorAll(".grid")].map(g=>g.querySelectorAll(":scope>.wn").length)),avail=window.innerHeight-top-leg-head-40,row=Math.max(76,Math.min(150,Math.floor(avail/rows)));
   sp.style.setProperty("--row",row+"px");sp.classList.toggle("compact",row<92)}
 
 /* ---------- render: upcoming ---------- */

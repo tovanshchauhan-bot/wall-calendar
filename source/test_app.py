@@ -38,6 +38,12 @@ with sync_playwright() as p:
     check(pg.is_visible("#gate") and pg.is_enabled("#gateBtn"), "first visit shows the sign-in screen")
     pg.evaluate("window.__wcTestSignIn()"); pg.wait_for_selector("#gate", state="hidden", timeout=15000); pg.wait_for_timeout(1500)
     check(pg.get_attribute(".day.today", "data-date") == day(0), "signed in; today's square is " + day(0))
+    layout = pg.evaluate("""()=>{const out={pads:document.querySelectorAll('.day.pad').length,bad:[],counts:[]};
+      document.querySelectorAll('.month').forEach(mo=>{const hs=[...mo.querySelectorAll('.wk span')].slice(1).map(x=>x.getBoundingClientRect().left);
+        const days=[...mo.querySelectorAll('.day')],ds=days.map(c=>c.dataset.date),[y,m]=ds[0].split('-').map(Number);
+        out.counts.push([ds.length,new Date(y,m,0).getDate(),ds[0].endsWith('-01')]);
+        days.forEach(c=>{const w=(new Date(c.dataset.date+'T12:00:00').getDay()+6)%7;if(Math.abs(c.getBoundingClientRect().left-hs[w])>2)out.bad.push(c.dataset.date)})});return out}""")
+    check(layout["pads"] == 0 and not layout["bad"] and all(c[0] == c[1] and c[2] for c in layout["counts"]), "each month shows only its own days, each under the right weekday: " + str(layout["counts"]))
 
     pg.click("#tab-settings"); pg.set_input_files("#restoreFile", BACKUP); pg.wait_for_selector("#doRestore")
     found = squash(pg.inner_text("#restoreMsg")); pg.click("#doRestore")
