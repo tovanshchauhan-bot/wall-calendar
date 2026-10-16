@@ -148,14 +148,34 @@ button,input,select,textarea{font:inherit;color:inherit}
 .dhead{display:flex;align-items:center;gap:4px;padding:6px 6px 3px 7px;min-height:26px}
 .dnum{font-family:var(--font-display);font-stretch:112%;font-weight:700;font-size:15px;line-height:1;font-variant-numeric:tabular-nums;margin-right:auto}
 .tl{display:none;font-size:8.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-right:auto;margin-left:-2px}
-.items{display:flex;flex-direction:column;gap:3px;padding:2px 4px 4px;min-height:0}
-.pill{--c:var(--c-other);display:block;padding:1px 3px 1px 4px;border-left:3px solid var(--c);border-radius:3px;background:color-mix(in srgb,var(--c) 13%,var(--panel));color:color-mix(in srgb,var(--c) 70%,var(--ink));font:500 11px/1.22 var(--font-cond);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:break-word;word-break:normal;hyphens:auto}
-.compact .pill{-webkit-line-clamp:1}
-.pill .ps{display:none;font-weight:600}
-.pill.ev{border-left-style:dotted;border-left-width:3px}
-.pill.done{text-decoration:line-through;opacity:.62}
-@container (min-width: 104px){ .pill .ps{display:inline} }
-.more{font-size:10px;font-weight:600;color:var(--ink-3);padding-left:5px}
+.items{flex:1 1 auto;display:flex;flex-direction:column;gap:3px;padding:1px 4px 4px;min-height:0}
+/* an assessment is a tile that fills the free space in its square; two on one day share it in halves */
+.tiles{flex:1 1 auto;display:flex;flex-direction:column;gap:3px;min-height:0}
+.tile{--c:var(--c-other);--on:#FFFFFF;container:tile/inline-size;flex:1 1 0;min-height:0;display:flex;align-items:center;padding:0 8px;border-radius:7px;overflow:hidden;color:var(--on);
+  background:radial-gradient(120% 110% at 100% 0%,rgb(255 255 255/.2),rgb(255 255 255/0) 58%),linear-gradient(165deg,color-mix(in oklab,var(--c),#fff 6%),color-mix(in oklab,var(--c),#000 18%));
+  box-shadow:inset 0 1px 0 rgb(255 255 255/.16),inset 0 0 0 1px rgb(0 0 0/.08),0 1px 2px rgb(0 0 0/.16)}
+.tile b{--adv:.89;--fs:13cqi;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-family:var(--font-display);font-weight:800;font-stretch:112%;line-height:1.1;letter-spacing:.06em;text-transform:uppercase;text-wrap:balance;
+  font-size:clamp(7.5px,min(var(--fs),100cqi/(var(--L,9)*var(--adv))),14px)}
+.tile .ls{display:none}
+.day.n2 .tile b{--fs:12cqi}
+.compact .day.n2 .tile b{-webkit-line-clamp:1}
+.tile.done{opacity:.5}
+.tile.done b{text-decoration:line-through;text-decoration-thickness:1.5px}
+.day:not(.past):hover .tile{filter:brightness(1.07)}
+/* the longest word sets the size, so a name never breaks mid-word; narrow squares use the narrower cut, and the short name when tiny */
+@container (max-width: 90px){ .tile{padding:0 5px;border-radius:5px} }
+@container tile (max-width: 64px){ .tile b{--adv:.72;--fs:15.5cqi;font-stretch:92%;letter-spacing:.03em} }
+/* switch to the short name once the full one can't fit; mNN = the width the full name needs */
+@container tile (max-width: 70px){ .tile.m70 b{--L:var(--Ls)} .tile.m70 .lf{display:none} .tile.m70 .ls{display:inline} }
+@container tile (max-width: 60px){ .tile.m60 b{--L:var(--Ls)} .tile.m60 .lf{display:none} .tile.m60 .ls{display:inline} }
+@container tile (max-width: 50px){ .tile.m50 b{--L:var(--Ls)} .tile.m50 .lf{display:none} .tile.m50 .ls{display:inline} }
+@container tile (max-width: 40px){ .tile.m40 b{--L:var(--Ls)} .tile.m40 .lf{display:none} .tile.m40 .ls{display:inline} }
+@container tile (max-width: 30px){ .tile.m30 b{--L:var(--Ls)} .tile.m30 .lf{display:none} .tile.m30 .ls{display:inline} }
+/* an event is a thin bar; across several days it runs on as one band, named where it starts and at each new week */
+.evbar{--c:var(--c-event);flex:none;display:block;height:17px;padding:0 6px;border-radius:4px;background:color-mix(in srgb,var(--c) 24%,var(--panel));color:color-mix(in srgb,var(--c) 45%,var(--ink));font:600 10.5px/17px var(--font-cond);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.evbar.cl{margin-left:-4px;border-top-left-radius:0;border-bottom-left-radius:0}
+.evbar.cr{margin-right:-4px;border-top-right-radius:0;border-bottom-right-radius:0}
+.more{margin-left:auto;padding:2px 6px;border-radius:999px;background:var(--chip);color:var(--ink-2);font:700 9.5px/1 var(--font-ui)}
 
 /* training lanes along the foot of a day: left = gym, right = run */
 .ac-gym{--a:var(--gym);--on:var(--on-gym)}
@@ -171,15 +191,16 @@ button,input,select,textarea{font:inherit;color:inherit}
 .lane:not([aria-pressed="true"]):hover{border-style:solid!important;border-color:var(--a)!important;color:var(--a)!important;background:color-mix(in srgb,var(--a) 14%,var(--panel))!important}
 .lane[aria-pressed="true"]:hover{filter:brightness(1.08)}
 .day.has-lanes .items{padding-bottom:12px}
-.day.today .items{padding-bottom:25px}
+.day.today .items,.day.has-lanes:hover .items,.day.has-lanes:focus-visible .items,.day.has-lanes:has(.lane:focus-visible) .items{padding-bottom:25px}
 @container (max-width: 58px){ .lane .f{display:none} .lane .s{display:inline} }
 @media (hover:none){ .day.has-lanes .lanes{height:18px} .day.has-lanes .lane:not([aria-pressed="true"]){color:var(--ink-3);border-color:var(--rule-strong);background:var(--panel)} .day.has-lanes .lane[aria-pressed="true"]{color:var(--on)} .day.has-lanes .items{padding-bottom:25px} }
 
 /* past: greyed and crossed off */
 .day.past{background-color:var(--past);background-image:linear-gradient(to top right,transparent calc(50% - .7px),var(--cross) calc(50% - .7px),var(--cross) calc(50% + .7px),transparent calc(50% + .7px)),linear-gradient(to bottom right,transparent calc(50% - .7px),var(--cross) calc(50% - .7px),var(--cross) calc(50% + .7px),transparent calc(50% + .7px))}
 .day.past .dnum{color:var(--past-ink);text-decoration:line-through;text-decoration-thickness:1.5px}
-.day.past .pill{filter:saturate(.55);opacity:.88}
-.day.past .pill.done{opacity:.55}
+.day.past .tile{opacity:.5;filter:saturate(.6)}
+.day.past .tile.done{opacity:.35}
+.day.past .evbar{opacity:.6}
 
 /* today */
 .day.today{background:var(--today-wash);box-shadow:inset 0 0 0 2px var(--today)}
@@ -283,6 +304,8 @@ input[type="color"]{width:30px;height:24px;border:1px solid var(--rule);border-r
 @media (prefers-reduced-motion: no-preference){
   .day,.chip,.btn,.tab{transition:background-color .15s,box-shadow .15s,border-color .15s}
   .lanes{transition:height .14s ease}
+  .items{transition:padding-bottom .14s ease}
+  .tile{transition:filter .12s ease}
 }
 @media print{
   @page{size:A4 landscape;margin:8mm}
@@ -372,6 +395,6 @@ input[type="color"]{width:30px;height:24px;border:1px solid var(--rule);border-r
 <div class="overlay" id="overlay" hidden><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
 <div class="toast" id="toast" hidden></div>
 <script src="config.js?v=3e4a4910ec"></script>
-<script type="module" src="app.js?v=47f36140ec"></script>
+<script type="module" src="app.js?v=8bbbe80e82"></script>
 </body>
 </html>

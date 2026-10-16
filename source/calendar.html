@@ -129,14 +129,34 @@ button,input,select,textarea{font:inherit;color:inherit}
 .dhead{display:flex;align-items:center;gap:4px;padding:6px 6px 3px 7px;min-height:26px}
 .dnum{font-family:var(--font-display);font-stretch:112%;font-weight:700;font-size:15px;line-height:1;font-variant-numeric:tabular-nums;margin-right:auto}
 .tl{display:none;font-size:8.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-right:auto;margin-left:-2px}
-.items{display:flex;flex-direction:column;gap:3px;padding:2px 4px 4px;min-height:0}
-.pill{--c:var(--c-other);display:block;padding:1px 3px 1px 4px;border-left:3px solid var(--c);border-radius:3px;background:color-mix(in srgb,var(--c) 13%,var(--panel));color:color-mix(in srgb,var(--c) 70%,var(--ink));font:500 11px/1.22 var(--font-cond);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:break-word;word-break:normal;hyphens:auto}
-.compact .pill{-webkit-line-clamp:1}
-.pill .ps{display:none;font-weight:600}
-.pill.ev{border-left-style:dotted;border-left-width:3px}
-.pill.done{text-decoration:line-through;opacity:.62}
-@container (min-width: 104px){ .pill .ps{display:inline} }
-.more{font-size:10px;font-weight:600;color:var(--ink-3);padding-left:5px}
+.items{flex:1 1 auto;display:flex;flex-direction:column;gap:3px;padding:1px 4px 4px;min-height:0}
+/* an assessment is a tile that fills the free space in its square; two on one day share it in halves */
+.tiles{flex:1 1 auto;display:flex;flex-direction:column;gap:3px;min-height:0}
+.tile{--c:var(--c-other);--on:#FFFFFF;container:tile/inline-size;flex:1 1 0;min-height:0;display:flex;align-items:center;padding:0 8px;border-radius:7px;overflow:hidden;color:var(--on);
+  background:radial-gradient(120% 110% at 100% 0%,rgb(255 255 255/.2),rgb(255 255 255/0) 58%),linear-gradient(165deg,color-mix(in oklab,var(--c),#fff 6%),color-mix(in oklab,var(--c),#000 18%));
+  box-shadow:inset 0 1px 0 rgb(255 255 255/.16),inset 0 0 0 1px rgb(0 0 0/.08),0 1px 2px rgb(0 0 0/.16)}
+.tile b{--adv:.89;--fs:13cqi;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-family:var(--font-display);font-weight:800;font-stretch:112%;line-height:1.1;letter-spacing:.06em;text-transform:uppercase;text-wrap:balance;
+  font-size:clamp(7.5px,min(var(--fs),100cqi/(var(--L,9)*var(--adv))),14px)}
+.tile .ls{display:none}
+.day.n2 .tile b{--fs:12cqi}
+.compact .day.n2 .tile b{-webkit-line-clamp:1}
+.tile.done{opacity:.5}
+.tile.done b{text-decoration:line-through;text-decoration-thickness:1.5px}
+.day:not(.past):hover .tile{filter:brightness(1.07)}
+/* the longest word sets the size, so a name never breaks mid-word; narrow squares use the narrower cut, and the short name when tiny */
+@container (max-width: 90px){ .tile{padding:0 5px;border-radius:5px} }
+@container tile (max-width: 64px){ .tile b{--adv:.72;--fs:15.5cqi;font-stretch:92%;letter-spacing:.03em} }
+/* switch to the short name once the full one can't fit; mNN = the width the full name needs */
+@container tile (max-width: 70px){ .tile.m70 b{--L:var(--Ls)} .tile.m70 .lf{display:none} .tile.m70 .ls{display:inline} }
+@container tile (max-width: 60px){ .tile.m60 b{--L:var(--Ls)} .tile.m60 .lf{display:none} .tile.m60 .ls{display:inline} }
+@container tile (max-width: 50px){ .tile.m50 b{--L:var(--Ls)} .tile.m50 .lf{display:none} .tile.m50 .ls{display:inline} }
+@container tile (max-width: 40px){ .tile.m40 b{--L:var(--Ls)} .tile.m40 .lf{display:none} .tile.m40 .ls{display:inline} }
+@container tile (max-width: 30px){ .tile.m30 b{--L:var(--Ls)} .tile.m30 .lf{display:none} .tile.m30 .ls{display:inline} }
+/* an event is a thin bar; across several days it runs on as one band, named where it starts and at each new week */
+.evbar{--c:var(--c-event);flex:none;display:block;height:17px;padding:0 6px;border-radius:4px;background:color-mix(in srgb,var(--c) 24%,var(--panel));color:color-mix(in srgb,var(--c) 45%,var(--ink));font:600 10.5px/17px var(--font-cond);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.evbar.cl{margin-left:-4px;border-top-left-radius:0;border-bottom-left-radius:0}
+.evbar.cr{margin-right:-4px;border-top-right-radius:0;border-bottom-right-radius:0}
+.more{margin-left:auto;padding:2px 6px;border-radius:999px;background:var(--chip);color:var(--ink-2);font:700 9.5px/1 var(--font-ui)}
 
 /* training lanes along the foot of a day: left = gym, right = run */
 .ac-gym{--a:var(--gym);--on:var(--on-gym)}
@@ -152,15 +172,16 @@ button,input,select,textarea{font:inherit;color:inherit}
 .lane:not([aria-pressed="true"]):hover{border-style:solid!important;border-color:var(--a)!important;color:var(--a)!important;background:color-mix(in srgb,var(--a) 14%,var(--panel))!important}
 .lane[aria-pressed="true"]:hover{filter:brightness(1.08)}
 .day.has-lanes .items{padding-bottom:12px}
-.day.today .items{padding-bottom:25px}
+.day.today .items,.day.has-lanes:hover .items,.day.has-lanes:focus-visible .items,.day.has-lanes:has(.lane:focus-visible) .items{padding-bottom:25px}
 @container (max-width: 58px){ .lane .f{display:none} .lane .s{display:inline} }
 @media (hover:none){ .day.has-lanes .lanes{height:18px} .day.has-lanes .lane:not([aria-pressed="true"]){color:var(--ink-3);border-color:var(--rule-strong);background:var(--panel)} .day.has-lanes .lane[aria-pressed="true"]{color:var(--on)} .day.has-lanes .items{padding-bottom:25px} }
 
 /* past: greyed and crossed off */
 .day.past{background-color:var(--past);background-image:linear-gradient(to top right,transparent calc(50% - .7px),var(--cross) calc(50% - .7px),var(--cross) calc(50% + .7px),transparent calc(50% + .7px)),linear-gradient(to bottom right,transparent calc(50% - .7px),var(--cross) calc(50% - .7px),var(--cross) calc(50% + .7px),transparent calc(50% + .7px))}
 .day.past .dnum{color:var(--past-ink);text-decoration:line-through;text-decoration-thickness:1.5px}
-.day.past .pill{filter:saturate(.55);opacity:.88}
-.day.past .pill.done{opacity:.55}
+.day.past .tile{opacity:.5;filter:saturate(.6)}
+.day.past .tile.done{opacity:.35}
+.day.past .evbar{opacity:.6}
 
 /* today */
 .day.today{background:var(--today-wash);box-shadow:inset 0 0 0 2px var(--today)}
@@ -264,6 +285,8 @@ input[type="color"]{width:30px;height:24px;border:1px solid var(--rule);border-r
 @media (prefers-reduced-motion: no-preference){
   .day,.chip,.btn,.tab{transition:background-color .15s,box-shadow .15s,border-color .15s}
   .lanes{transition:height .14s ease}
+  .items{transition:padding-bottom .14s ease}
+  .tile{transition:filter .12s ease}
 }
 @media print{
   @page{size:A4 landscape;margin:8mm}
@@ -381,6 +404,13 @@ const colorVar=g=>"var(--c-"+g+")";
 const HEX=/^#[0-9a-fA-F]{6}$/;
 const itemColor=it=>isEvent(it)?(HEX.test(it.color||"")?it.color:"var(--c-event)"):colorVar(subjInfo(it.subject).group);
 const isEvent=it=>it.type==="Event";
+/* what a day shows: the subject for an assessment ("Mathematics" shortened to "Maths" so it fits), the name for an event or an "Other" item */
+const subjLabel=name=>String(name||"").replace(/\bMathematics\b/g,"Maths").replace(/\bExtension\b/g,"Ext");
+function itemLabel(it){if(isEvent(it))return it.name||"Event";const sn=subjInfo(it.subject).name;return (!it.subject||sn==="Other")?(it.name||"Other"):subjLabel(sn)}
+function itemHex(it){const c=S.settings.colors,v=isEvent(it)?(HEX.test(it.color||"")?it.color:c.event):c[subjInfo(it.subject).group]||c.other;return HEX.test(v||"")?v:"#2D7A73"}
+function itemTip(it){const ev=isEvent(it);return (ev?"Event":subjInfo(it.subject).name)+" — "+(it.name||"")+(it.type&&!ev?" · "+it.type:"")+(it.weight?" · "+it.weight:"")+(it.done?" · completed":"")}
+const longestWord=label=>Math.max(4,...String(label).split(/\s+/).map(w=>w.length));
+function itemShort(it){if(isEvent(it))return it.name||"Event";const si=subjInfo(it.subject);return (!it.subject||si.name==="Other")?(it.name||"Other"):(si.short||subjLabel(si.name))}
 const endOf=it=>(it.end&&it.end>it.date)?it.end:it.date;
 function itemsList(){return [...S.items.entries()].map(([id,v])=>Object.assign({id},v)).filter(it=>typeof it.date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(it.date))}
 function sortKey(it){const si=S.settings.subjects.findIndex(s=>s.name===it.subject);return (isEvent(it)?1:0)+"|"+String(si<0?99:si).padStart(2,"0")+"|"+(it.name||"")}
@@ -475,13 +505,16 @@ function renderCalendar(){
       if(d<t)cls.push("past");else if(d===t)cls.push("today");
       const gym=S.gym.has(d),run=S.run.has(d),list=byDate.get(d)||[];
       let lanes="";if(d<=t){cls.push("has-lanes");lanes='<div class="lanes">'+ACTS.map(([k,l])=>{const on=S[k].has(d);return '<button type="button" class="lane ac-'+k+'" data-act="'+k+'" data-date="'+d+'" aria-pressed="'+on+'" aria-label="'+l+" on "+esc(shortDate(d))+(on?": done":": not ticked")+'" title="'+esc(TIP[k][on?1:0])+'"><span class="f">'+l+'</span><span class="s">'+l[0]+"</span></button>"}).join("")+"</div>"}
-      const shown=list.length>2?1:2;let pills="";
-      list.slice(0,shown).forEach(it=>{const si=subjInfo(it.subject),ev=isEvent(it);
-        const tip=(ev?"Event":si.name)+" — "+(it.name||"")+(it.type&&!ev?" · "+it.type:"")+(it.weight?" · "+it.weight:"")+(it.done?" · completed":"");
-        pills+='<span class="pill'+(ev?" ev":"")+(it.done?" done":"")+'" style="--c:'+itemColor(it)+'" title="'+esc(tip)+'"><span class="ps">'+esc(ev?"":si.short+" · ")+"</span>"+esc(it.name||"(untitled)")+"</span>"});
-      if(list.length>shown)pills+='<span class="more">+'+(list.length-shown)+" more</span>";
-      const label=longDate(d)+(d===t?", today":"")+(gym?", gym done":"")+(run?", run done":"")+(list.length?", "+list.length+" item"+(list.length>1?"s":""):"");
-      html+='<div class="'+cls.join(" ")+'" data-date="'+d+'"'+(dnum===1?' style="grid-column-start:'+(w+2)+'"':"")+' tabindex="0" role="button" aria-label="'+esc(label)+'"><div class="dhead"><span class="dnum">'+parts(d).d+'</span><span class="tl">Today</span></div><div class="items">'+pills+"</div>"+lanes+"</div>"}}
+      const evs=list.filter(isEvent),tasks=list.filter(it=>!isEvent(it)),showT=tasks.slice(0,2),showE=evs.slice(0,tasks.length?1:2),extra=list.length-showT.length-showE.length,last=dnum===dim(y,m);
+      let body="";
+      for(const it of showE){const cl=d>it.date&&w!==0&&dnum!==1,cr=d<endOf(it)&&w!==6&&!last;
+        body+='<span class="evbar'+(cl?" cl":"")+(cr?" cr":"")+'" style="--c:'+itemColor(it)+'" title="'+esc(itemTip(it))+'">'+(cl?"":esc(itemLabel(it)))+"</span>"}
+      if(showT.length){if(showT.length>1)cls.push("n2");body+='<div class="tiles">'+showT.map(it=>{const lb=itemLabel(it),sh=itemShort(it);
+        const need=5.5*longestWord(lb),m=[30,40,50,60].find(x=>need<=x)||70;
+        return '<span class="tile m'+m+(it.done?" done":"")+'" style="--c:'+itemColor(it)+";--on:"+onColor(itemHex(it))+";--L:"+longestWord(lb)+";--Ls:"+longestWord(sh)+'" title="'+esc(itemTip(it))+'"><b><span class="lf">'+esc(lb)+'</span><span class="ls">'+esc(sh)+"</span></b></span>"}).join("")+"</div>"}
+      const more=extra>0?'<span class="more" title="'+extra+' more: click the day to see everything">+'+extra+"</span>":"";
+      const label=longDate(d)+(d===t?", today":"")+(gym?", gym done":"")+(run?", run done":"")+(list.length?": "+list.map(itemLabel).join(", "):"");
+      html+='<div class="'+cls.join(" ")+'" data-date="'+d+'"'+(dnum===1?' style="grid-column-start:'+(w+2)+'"':"")+' tabindex="0" role="button" aria-label="'+esc(label)+'"><div class="dhead"><span class="dnum">'+parts(d).d+'</span><span class="tl">Today</span>'+more+'</div><div class="items">'+body+"</div>"+lanes+"</div>"}}
     html+="</div></article>"}
   spread.innerHTML=html;
   renderNextUp();sizeRows();}
@@ -490,7 +523,7 @@ function renderNextUp(){const el=$("nextup"),t=todayISO();
   const list=upcoming(false).filter(it=>!it.done).slice(0,3);
   if(!list.length){el.innerHTML='<span class="lbl">Next up</span><span class="muted">Nothing due. Add an assessment with + Add.</span>';return}
   el.innerHTML='<span class="lbl">Next up</span>'+list.map(it=>{const n=diffDays(t,it.date),si=subjInfo(it.subject);
-    return '<button type="button" class="chip" data-item="'+esc(it.id)+'" style="--c:'+itemColor(it)+'" title="'+esc(si.name+" — "+(it.name||"")+" · "+shortDate(it.date))+'"><i class="dot"></i><span class="ct">'+esc(si.short)+" · "+esc(it.name||"")+'</span><span class="cd '+urg(n)+'">'+countdown(n)+"</span></button>"}).join("")}
+    return '<button type="button" class="chip" data-item="'+esc(it.id)+'" style="--c:'+itemColor(it)+'" title="'+esc(si.name+" — "+(it.name||"")+" · "+shortDate(it.date))+'"><i class="dot"></i><span class="ct">'+esc(itemLabel(it))+'</span><span class="cd '+urg(n)+'">'+countdown(n)+"</span></button>"}).join("")}
 function renderTraining(){const t=todayISO(),p=parts(t),m1=iso(p.y,p.m,1);let h="";
   for(const [k,label] of ACTS){const c7=actCount(k,addDays(t,-6),t),c30=actCount(k,addDays(t,-29),t),cm=actCount(k,m1,t);let strip="";
     for(let i=29;i>=0;i--){const d=addDays(t,-i),on=S[k].has(d);strip+='<i class="'+(on?"on":"")+(i===0?" now":"")+'" title="'+esc(shortDate(d))+(on?": "+label.toLowerCase():"")+'"></i>'}
@@ -540,8 +573,8 @@ function renderSettings(){const s=S.settings;
   '<div class="card"><h3>Backup and printing</h3><p>Download a backup now and then. The printable page opens in your browser, where Cmd+P (or Ctrl+P) prints it landscape.</p><div class="row"><button class="btn" type="button" id="dlJson">Download backup (.json)</button><button class="btn" type="button" id="dlCsv">Assessments (.csv)</button></div><div class="row"><button class="btn" type="button" id="dlPrint">Printable page (.html)</button><label class="btn" for="restoreFile" style="cursor:pointer">Restore from backup…</label><input type="file" id="restoreFile" accept=".json,application/json" hidden></div><div id="restoreMsg"></div></div>'+
   '<div class="card span"><h3>How to use</h3><ol class="howto">'+
   "<li><b>Gym or run.</b> Hover over a day and click Gym or Run along the bottom of its square (today always shows them). Gym fills the left half green, a run fills the right half gold. Click again to undo.</li>"+
-  "<li><b>New assessment.</b> Click + Add, or click the day itself. Date, subject and name are enough; type, weighting and notes are optional. It shows on the calendar and in Upcoming straight away.</li>"+
-  "<li><b>Events.</b> Set the type to Event (formal, holiday, birthday, travel) and pick a colour if you like. They show on the calendar with a dotted edge and stay out of Upcoming. For anything longer than a day, add an end date.</li>"+
+  "<li><b>New assessment.</b> Click + Add, or click the day itself. Date, subject and name are enough; type, weighting and notes are optional. It shows on the calendar as a tile with its subject, and in Upcoming straight away. Hover over a tile, or click the day, for the details.</li>"+
+  "<li><b>Events.</b> Set the type to Event (formal, holiday, birthday, travel) and pick a colour if you like. They show on the calendar as a thin bar, running across the days of a longer event, and stay out of Upcoming. For anything longer than a day, add an end date.</li>"+
   "<li><b>Finished.</b> Tick Done in Upcoming, the day view or Assessments. It stays in your record, struck through.</li>"+
   "<li><b>Automatic.</b> At midnight yesterday greys out and gets crossed off, today moves on, and the month captions, countdowns and gym totals update. Nothing to maintain.</li>"+
   "<li><b>Term weeks.</b> During school terms the week number shows in the margin beside each week and next to today's date. Add next year's terms under School terms.</li>"+

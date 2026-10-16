@@ -33,6 +33,19 @@ with sync_playwright() as p:
     pg.on("pageerror", lambda e: errors.append("PAGE ERROR " + str(e)))
     train = lambda: squash(pg.inner_text("#train"))
     pressed = lambda kind: pg.get_attribute(f'.day.today .lane[data-act="{kind}"]', "aria-pressed")
+    nexttitles = lambda: " | ".join(pg.eval_on_selector_all("#nextup .chip", "cs => cs.map(c => c.title)"))
+    nextlabels = lambda: [squash(x) for x in pg.eval_on_selector_all("#nextup .chip .ct", "cs => cs.map(c => c.textContent)")]
+    def show_day(date):  # page forward until that day is on screen
+        for _ in range(3):
+            if pg.locator(f'.day[data-date="{date}"]').count(): return True
+            pg.click("#nextBtn"); pg.wait_for_timeout(250)
+        return False
+    def day_tiles(date):
+        if not show_day(date): return None
+        return pg.evaluate("""d=>{const c=document.querySelector('.day[data-date="'+d+'"]'),h=c.getBoundingClientRect().height;
+          return {cell:Math.round(h),tiles:[...c.querySelectorAll('.tile')].map(t=>{const b=t.querySelector('b'),l=[...b.children].find(x=>getComputedStyle(x).display!=='none');
+            return {text:l.textContent,h:Math.round(t.getBoundingClientRect().height),fits:b.scrollWidth<=b.clientWidth+1,upper:getComputedStyle(b).textTransform}}),
+            bars:[...c.querySelectorAll('.evbar')].map(e=>e.textContent)}}""", date)
 
     pg.goto(URL); pg.wait_for_timeout(1200)
     check(pg.is_visible("#gate") and pg.is_enabled("#gateBtn"), "first visit shows the sign-in screen")
@@ -62,12 +75,12 @@ with sync_playwright() as p:
     check("Found 2 items, 3 gym days and 2 runs" in found, "backup file read: " + found[:60])
     pg.click("#tab-calendar"); pg.wait_for_timeout(500)
     check(re.search(r"GYM \d+ this month 3 last 7 days 3 last 30 days", train()) and re.search(r"RUN \d+ this month 2 last 7 days 2 last 30 days", train()), "imported ticks counted: " + train()[:150])
-    check("Sample test" in pg.inner_text("#nextup") and "7 days" in pg.inner_text("#nextup"), "imported assessment in Next up, 7 days away")
+    check("Sample test" in nexttitles() and "Physics" in nextlabels() and "7 days" in pg.inner_text("#nextup"), "imported assessment in Next up by subject, 7 days away: " + str(nextlabels()))
 
     pg.click('.day.today .lane[data-act="run"]'); pg.wait_for_timeout(300)
     check(pressed("run") == "true" and "RUN" in train() and re.search(r"RUN \d+ this month 3 last 7 days", train()), "one click ticks a run today")
     pg.click("#addBtn"); pg.fill("#f-date", day(10)); pg.select_option("#f-subject", "Chemistry"); pg.fill("#f-name", "Module test"); pg.click("#f-save"); pg.wait_for_timeout(400)
-    check("Module test" in pg.inner_text("#nextup"), "new assessment added through the form")
+    check("Module test" in nexttitles() and "Chemistry" in nextlabels(), "new assessment added through the form: " + str(nextlabels()))
 
     # event colours: a picked colour sticks to that event; the Events setting recolours the rest
     rowc = lambda name: (pg.evaluate("n=>{const r=[...document.querySelectorAll('#view-items tbody tr')].find(t=>t.innerText.includes(n));return r?getComputedStyle(r.querySelector('.subj')).getPropertyValue('--c').trim().toLowerCase():null}", name) or "")
@@ -82,6 +95,20 @@ with sync_playwright() as p:
     pg.click("#tab-items"); pg.wait_for_timeout(200)
     check(rowc("Sample event") == "#55657a" and rowc("Sample formal") == "#8e3b8e", "changing the Events colour recolours only default-coloured events")
     pg.click("#tab-calendar"); pg.wait_for_timeout(300)
+
+    # day tiles: the subject only, filling the square; two on one day get half each; events stay thin bars
+    pg.click("#addBtn"); pg.fill("#f-date", day(7)); pg.select_option("#f-subject", "Mathematics Advanced"); pg.fill("#f-name", "Paper 1"); pg.click("#f-save"); pg.wait_for_timeout(400)
+    pg.click('#monthsSeg [data-m="2"]'); pg.wait_for_timeout(300)  # the two-month view, as used day to day
+    one, two, ev = day_tiles(day(10)), None, None
+    pg.evaluate("document.getElementById('todayBtn').click()"); pg.wait_for_timeout(200); two = day_tiles(day(7))
+    pg.evaluate("document.getElementById('todayBtn').click()"); pg.wait_for_timeout(200); ev = day_tiles(day(3))
+    pg.evaluate("document.getElementById('todayBtn').click()"); pg.wait_for_timeout(250)
+    check(one and [t["text"] for t in one["tiles"]] == ["Chemistry"] and one["tiles"][0]["upper"] == "uppercase" and one["tiles"][0]["h"] >= one["cell"] * .5, "one assessment: a tile saying just its subject, filling the square: " + str(one))
+    check(two and [t["text"] for t in two["tiles"]] == ["Maths Advanced", "Physics"] and abs(two["tiles"][0]["h"] - two["tiles"][1]["h"]) <= 1 and sum(t["h"] for t in two["tiles"]) >= two["cell"] * .5, "two on one day: half the square each: " + str(two))
+    check(ev and not ev["tiles"] and ev["bars"] == ["Sample formal"], "an event shows as a named bar, not a tile: " + str(ev))
+    check(all(t["fits"] for x in (one, two) if x for t in x["tiles"]), "tile names fit without being cut")
+    if SHOTS: show_day(day(7)); pg.screenshot(path=os.path.join(SHOTS, "tiles.png")); pg.evaluate("document.getElementById('todayBtn').click()"); pg.wait_for_timeout(200)
+    pg.click('#monthsSeg [data-m="3"]'); pg.wait_for_timeout(300)
 
     # term weeks: point the first term at dates where today falls in week 3
     mon = today - dt.timedelta(days=today.weekday())
@@ -101,7 +128,7 @@ with sync_playwright() as p:
 
     ctx.set_offline(True); pg.reload(); pg.wait_for_timeout(2500)
     check(pg.is_hidden("#gate") and pg.get_attribute(".day.today", "data-date") == day(0), "OFFLINE: app opens and stays signed in")
-    check(re.search(r"RUN \d+ this month 3 last 7 days", train()) and "Module test" in pg.inner_text("#nextup"), "OFFLINE: all data present")
+    check(re.search(r"RUN \d+ this month 3 last 7 days", train()) and "Module test" in nexttitles(), "OFFLINE: all data present")
     check(squash(pg.inner_text("#sync")).startswith("Offline"), "OFFLINE: pill says " + squash(pg.inner_text("#sync")))
     pg.click("#tab-items"); pg.wait_for_timeout(200)
     check(rowc("Sample formal") == "#8e3b8e", "OFFLINE: event colour kept")
