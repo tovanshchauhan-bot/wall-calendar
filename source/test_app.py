@@ -45,7 +45,12 @@ with sync_playwright() as p:
         return pg.evaluate("""d=>{const c=document.querySelector('.day[data-date="'+d+'"]'),h=c.getBoundingClientRect().height;
           return {cell:Math.round(h),tiles:[...c.querySelectorAll('.tile')].map(t=>{const b=t.querySelector('b'),l=[...b.children].find(x=>getComputedStyle(x).display!=='none');
             return {text:l.textContent,h:Math.round(t.getBoundingClientRect().height),fits:b.scrollWidth<=b.clientWidth+1,upper:getComputedStyle(b).textTransform}}),
-            bars:[...c.querySelectorAll('.evbar')].map(e=>e.textContent)}}""", date)
+            bars:[...document.querySelectorAll('.band')].filter(b=>b.dataset.from<=d&&d<=b.dataset.to).map(b=>b.querySelector('span').textContent)}}""", date)
+    def bands(name):  # every piece of an event's block on screen: is the name whole, centred, and the block centred in the squares?
+        return pg.evaluate("""n=>[...document.querySelectorAll('.band')].filter(b=>b.querySelector('span').textContent===n).map(b=>{const bar=b.querySelector('b').getBoundingClientRect(),
+          sp=b.querySelector('span'),tx=sp.getBoundingClientRect(),row=b.getBoundingClientRect(),dh=parseFloat(getComputedStyle(b).getPropertyValue('--dh'));
+          return {whole:sp.scrollWidth<=sp.clientWidth+1&&sp.scrollHeight<=sp.clientHeight+1,textOff:Math.abs((tx.left+tx.right)/2-(bar.left+bar.right)/2),
+            boxOff:b.classList.contains('top')?0:Math.abs((bar.top+bar.bottom)/2-(row.top+dh+(row.height-dh-4)/2)),days:b.dataset.from+'..'+b.dataset.to}})""", name)
 
     pg.goto(URL); pg.wait_for_timeout(1200)
     check(pg.is_visible("#gate") and pg.is_enabled("#gateBtn"), "first visit shows the sign-in screen")
@@ -102,10 +107,13 @@ with sync_playwright() as p:
     one, two, ev = day_tiles(day(10)), None, None
     pg.evaluate("document.getElementById('todayBtn').click()"); pg.wait_for_timeout(200); two = day_tiles(day(7))
     pg.evaluate("document.getElementById('todayBtn').click()"); pg.wait_for_timeout(200); ev = day_tiles(day(3))
+    pg.click("#addBtn"); pg.fill("#f-date", day(15)); pg.select_option("#f-type", "Event"); pg.fill("#f-end", day(17)); pg.fill("#f-name", "Sample retreat"); pg.click("#f-save"); pg.wait_for_timeout(400)
+    pg.evaluate("document.getElementById('todayBtn').click()"); pg.wait_for_timeout(200); show_day(day(15)); blk = bands("Sample retreat")
     pg.evaluate("document.getElementById('todayBtn').click()"); pg.wait_for_timeout(250)
     check(one and [t["text"] for t in one["tiles"]] == ["Chemistry"] and one["tiles"][0]["upper"] == "uppercase" and one["tiles"][0]["h"] >= one["cell"] * .5, "one assessment: a tile saying just its subject, filling the square: " + str(one))
     check(two and [t["text"] for t in two["tiles"]] == ["Maths Advanced", "Physics"] and abs(two["tiles"][0]["h"] - two["tiles"][1]["h"]) <= 1 and sum(t["h"] for t in two["tiles"]) >= two["cell"] * .5, "two on one day: half the square each: " + str(two))
-    check(ev and not ev["tiles"] and ev["bars"] == ["Sample formal"], "an event shows as a named bar, not a tile: " + str(ev))
+    check(ev and not ev["tiles"] and ev["bars"] == ["Sample formal"], "an event shows as a named block, not a tile: " + str(ev))
+    check(blk and all(b["whole"] and b["textOff"] <= 1.5 and b["boxOff"] <= 2 for b in blk), "a 3-day event is one block per week, name whole and centred, block centred in the squares: " + str(blk))
     check(all(t["fits"] for x in (one, two) if x for t in x["tiles"]), "tile names fit without being cut")
     if SHOTS: show_day(day(7)); pg.screenshot(path=os.path.join(SHOTS, "tiles.png")); pg.evaluate("document.getElementById('todayBtn').click()"); pg.wait_for_timeout(200)
     pg.click('#monthsSeg [data-m="3"]'); pg.wait_for_timeout(300)

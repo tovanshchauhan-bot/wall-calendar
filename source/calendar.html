@@ -152,11 +152,31 @@ button,input,select,textarea{font:inherit;color:inherit}
 @container tile (max-width: 50px){ .tile.m50 b{--L:var(--Ls)} .tile.m50 .lf{display:none} .tile.m50 .ls{display:inline} }
 @container tile (max-width: 40px){ .tile.m40 b{--L:var(--Ls)} .tile.m40 .lf{display:none} .tile.m40 .ls{display:inline} }
 @container tile (max-width: 30px){ .tile.m30 b{--L:var(--Ls)} .tile.m30 .lf{display:none} .tile.m30 .ls{display:inline} }
-/* an event is a thin bar; across several days it runs on as one band, named where it starts and at each new week */
-.evbar{--c:var(--c-event);flex:none;display:block;height:17px;padding:0 6px;border-radius:4px;background:color-mix(in srgb,var(--c) 24%,var(--panel));color:color-mix(in srgb,var(--c) 45%,var(--ink));font:600 10.5px/17px var(--font-cond);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.evbar.cl{margin-left:-4px;border-top-left-radius:0;border-bottom-left-radius:0}
-.evbar.cr{margin-right:-4px;border-top-right-radius:0;border-bottom-right-radius:0}
+/* an event is one block laid over its days (one piece per week row), its name centred across the whole span.
+   It sits in the middle of the squares, or along the top when one of its days also has an assessment tile. */
+.grid{--bh:24px;--dh:27px}
+.band{--c:var(--c-event);position:relative;z-index:2;min-width:0;pointer-events:none}
+.band b{position:absolute;left:4px;right:4px;height:var(--bh);top:calc(var(--dh) + (100% - var(--dh) - 4px)/2 + (var(--lane,0) - (var(--lanes,1) - 1)/2)*(var(--bh) + 3px));transform:translateY(-50%);
+  display:flex;align-items:center;justify-content:center;padding:0 8px;border-radius:7px;border:1px solid color-mix(in srgb,var(--c) 58%,var(--panel));
+  background:color-mix(in srgb,var(--c) 30%,var(--panel));color:color-mix(in srgb,var(--c) 38%,var(--ink));
+  font-family:var(--font-display);font-weight:700;font-stretch:108%;font-size:10.5px;line-height:1.15;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap}
+.band b span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.band.cl b{left:0;border-left:0;border-top-left-radius:0;border-bottom-left-radius:0}
+.band.cr b{right:0;border-right:0;border-top-right-radius:0;border-bottom-right-radius:0}
+.band:not(.top) b{height:auto;min-height:var(--bh);padding:4px 8px;white-space:normal;text-align:center}
+.band:not(.top) b span{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.band.top b{top:calc(var(--dh) + 1px + var(--lane,0)*(var(--bh) + 3px));transform:none;font-stretch:100%;letter-spacing:.04em}
+.band.one b{padding:4px 5px;font-size:10px;font-stretch:100%;letter-spacing:.03em}
+.compact .grid{--bh:20px}
+.compact .band b{font-size:9.5px}
+.compact .day.bandtop .tile+.tile{display:none}
+.band.past b{opacity:.55}
+.day.bandtop .items{padding-top:calc(var(--bl,1)*(var(--bh) + 3px) + 1px)}
 .more{margin-left:auto;padding:2px 6px;border-radius:999px;background:var(--chip);color:var(--ink-2);font:700 9.5px/1 var(--font-ui)}
+.more::before{content:"+" attr(data-n)}
+.more[data-n="0"]{display:none}
+.compact .day.bandtop.n2 .more{display:inline-block}
+.compact .day.bandtop.n2 .more::before{content:"+" attr(data-nc)}
 
 /* training lanes along the foot of a day: left = gym, right = run */
 .ac-gym{--a:var(--gym);--on:var(--on-gym)}
@@ -181,7 +201,6 @@ button,input,select,textarea{font:inherit;color:inherit}
 .day.past .dnum{color:var(--past-ink);text-decoration:line-through;text-decoration-thickness:1.5px}
 .day.past .tile{opacity:.5;filter:saturate(.6)}
 .day.past .tile.done{opacity:.35}
-.day.past .evbar{opacity:.6}
 
 /* today */
 .day.today{background:var(--today-wash);box-shadow:inset 0 0 0 2px var(--today)}
@@ -496,25 +515,34 @@ function renderCalendar(){
     html+='<article class="month" aria-label="'+MONTHS[m-1]+" "+y+'"><div class="mhead"><h2>'+MONTHS[m-1]+" <span>"+y+'</span></h2><div class="mright">'+tally+'<span class="'+capCls+'">'+cap+"</span></div></div>";
     const cells=monthCells(y,m),m0=mondayOf(f),rows=[0,1,2,3,4,5].map(r=>{const mon=addDays(m0,7*r),days=cells.slice(7*r,7*r+7);return {mon,days,tw:termWeek(mon)}}).filter(r=>r.days.some(Boolean));
     html+='<div class="wk" aria-hidden="true"><span class="wkg">'+(rows.some(r=>r.tw)?"Wk":"")+"</span>"+DOW3.map(d=>"<span>"+d+"</span>").join("")+'</div><div class="grid">';
-    for(const row of rows){const sun=addDays(row.mon,6);
-      html+=row.tw?'<div class="wn'+(t>=row.mon&&t<=sun?" now":sun<t?" past":"")+'" title="'+esc(row.tw.name)+", week "+row.tw.week+'"><span>W'+row.tw.week+"</span></div>":'<div class="wn" aria-hidden="true"></div>';
-    for(const d of row.days){
-      if(!d)continue;
+    rows.forEach((row,ri)=>{const R=ri+1,sun=addDays(row.mon,6),real=row.days.filter(Boolean),rf=real[0],rl=real[real.length-1];
+      /* events in this week row: one piece each, stacked in lanes when they overlap (up to 3) */
+      const segs=[],seen=new Set();
+      for(const d of real)for(const it of byDate.get(d)||[])if(isEvent(it)&&!seen.has(it.id)){seen.add(it.id);segs.push({it,s:it.date>rf?it.date:rf,e:endOf(it)<rl?endOf(it):rl})}
+      segs.sort((a,b)=>a.s<b.s?-1:a.s>b.s?1:a.e>b.e?-1:a.e<b.e?1:0);
+      const ends=[];for(const g of segs){let l=ends.findIndex(x=>x<g.s);if(l<0){l=ends.length;ends.push(g.e)}else ends[l]=g.e;g.lane=l}
+      const L=Math.min(3,ends.length),shown=segs.filter(g=>g.lane<3),covered=new Set();
+      for(const g of shown)for(let d=g.s;d<=g.e;d=addDays(d,1))covered.add(d);
+      const top=[...covered].some(d=>(byDate.get(d)||[]).some(it=>!isEvent(it)));
+      html+=(row.tw?'<div class="wn'+(t>=row.mon&&t<=sun?" now":sun<t?" past":"")+'" style="grid-area:'+R+'/1" title="'+esc(row.tw.name)+", week "+row.tw.week+'"><span>W'+row.tw.week+"</span></div>":'<div class="wn" style="grid-area:'+R+'/1" aria-hidden="true"></div>');
+    for(const d of real){
       const cls=["day"],w=dowMon0(d),dnum=parts(d).d;if(w>=5)cls.push("weekend");
       if(dnum<=7)cls.push("bt");if(w===0||dnum===1)cls.push("bl");
       if(d<t)cls.push("past");else if(d===t)cls.push("today");
+      if(top&&covered.has(d))cls.push("bandtop");
       const gym=S.gym.has(d),run=S.run.has(d),list=byDate.get(d)||[];
       let lanes="";if(d<=t){cls.push("has-lanes");lanes='<div class="lanes">'+ACTS.map(([k,l])=>{const on=S[k].has(d);return '<button type="button" class="lane ac-'+k+'" data-act="'+k+'" data-date="'+d+'" aria-pressed="'+on+'" aria-label="'+l+" on "+esc(shortDate(d))+(on?": done":": not ticked")+'" title="'+esc(TIP[k][on?1:0])+'"><span class="f">'+l+'</span><span class="s">'+l[0]+"</span></button>"}).join("")+"</div>"}
-      const evs=list.filter(isEvent),tasks=list.filter(it=>!isEvent(it)),showT=tasks.slice(0,2),showE=evs.slice(0,tasks.length?1:2),extra=list.length-showT.length-showE.length,last=dnum===dim(y,m);
+      const tasks=list.filter(it=>!isEvent(it)),showT=tasks.slice(0,2),extra=tasks.length-showT.length+segs.filter(g=>g.lane>=3&&g.s<=d&&d<=g.e).length;
       let body="";
-      for(const it of showE){const cl=d>it.date&&w!==0&&dnum!==1,cr=d<endOf(it)&&w!==6&&!last;
-        body+='<span class="evbar'+(cl?" cl":"")+(cr?" cr":"")+'" style="--c:'+itemColor(it)+'" title="'+esc(itemTip(it))+'">'+(cl?"":esc(itemLabel(it)))+"</span>"}
       if(showT.length){if(showT.length>1)cls.push("n2");body+='<div class="tiles">'+showT.map(it=>{const lb=itemLabel(it),sh=itemShort(it);
         const need=5.5*longestWord(lb),m=[30,40,50,60].find(x=>need<=x)||70;
         return '<span class="tile m'+m+(it.done?" done":"")+'" style="--c:'+itemColor(it)+";--on:"+onColor(itemHex(it))+";--L:"+longestWord(lb)+";--Ls:"+longestWord(sh)+'" title="'+esc(itemTip(it))+'"><b><span class="lf">'+esc(lb)+'</span><span class="ls">'+esc(sh)+"</span></b></span>"}).join("")+"</div>"}
-      const more=extra>0?'<span class="more" title="'+extra+' more: click the day to see everything">+'+extra+"</span>":"";
+      const extraC=extra+(top&&covered.has(d)&&showT.length>1?1:0),more=extraC>0?'<span class="more" data-n="'+extra+'" data-nc="'+extraC+'" title="More on this day: click it to see everything"></span>':"";
       const label=longDate(d)+(d===t?", today":"")+(gym?", gym done":"")+(run?", run done":"")+(list.length?": "+list.map(itemLabel).join(", "):"");
-      html+='<div class="'+cls.join(" ")+'" data-date="'+d+'"'+(dnum===1?' style="grid-column-start:'+(w+2)+'"':"")+' tabindex="0" role="button" aria-label="'+esc(label)+'"><div class="dhead"><span class="dnum">'+parts(d).d+'</span><span class="tl">Today</span>'+more+'</div><div class="items">'+body+"</div>"+lanes+"</div>"}}
+      html+='<div class="'+cls.join(" ")+'" data-date="'+d+'" style="grid-area:'+R+"/"+(w+2)+(top&&covered.has(d)?";--bl:"+L:"")+'" tabindex="0" role="button" aria-label="'+esc(label)+'"><div class="dhead"><span class="dnum">'+dnum+'</span><span class="tl">Today</span>'+more+'</div><div class="items">'+body+"</div>"+lanes+"</div>"}
+      for(const g of shown){const cl=g.it.date<g.s,cr=endOf(g.it)>g.e;
+        html+='<div class="band'+(cl?" cl":"")+(cr?" cr":"")+(top?" top":"")+(g.s===g.e?" one":"")+(g.e<t?" past":"")+'" data-from="'+g.s+'" data-to="'+g.e+'" style="grid-area:'+R+"/"+(dowMon0(g.s)+2)+"/"+(R+1)+"/"+(dowMon0(g.e)+3)+";--c:"+itemColor(g.it)+";--lane:"+g.lane+";--lanes:"+L+'" aria-hidden="true"><b><span>'+esc(itemLabel(g.it))+"</span></b></div>"}
+    });
     html+="</div></article>"}
   spread.innerHTML=html;
   renderNextUp();sizeRows();}
@@ -574,7 +602,7 @@ function renderSettings(){const s=S.settings;
   '<div class="card span"><h3>How to use</h3><ol class="howto">'+
   "<li><b>Gym or run.</b> Hover over a day and click Gym or Run along the bottom of its square (today always shows them). Gym fills the left half green, a run fills the right half gold. Click again to undo.</li>"+
   "<li><b>New assessment.</b> Click + Add, or click the day itself. Date, subject and name are enough; type, weighting and notes are optional. It shows on the calendar as a tile with its subject, and in Upcoming straight away. Hover over a tile, or click the day, for the details.</li>"+
-  "<li><b>Events.</b> Set the type to Event (formal, holiday, birthday, travel) and pick a colour if you like. They show on the calendar as a thin bar, running across the days of a longer event, and stay out of Upcoming. For anything longer than a day, add an end date.</li>"+
+  "<li><b>Events.</b> Set the type to Event (formal, holiday, birthday, travel) and pick a colour if you like. They show on the calendar as one block across their days with the name in the middle, and stay out of Upcoming. For anything longer than a day, add an end date.</li>"+
   "<li><b>Finished.</b> Tick Done in Upcoming, the day view or Assessments. It stays in your record, struck through.</li>"+
   "<li><b>Automatic.</b> At midnight yesterday greys out and gets crossed off, today moves on, and the month captions, countdowns and gym totals update. Nothing to maintain.</li>"+
   "<li><b>Term weeks.</b> During school terms the week number shows in the margin beside each week and next to today's date. Add next year's terms under School terms.</li>"+
