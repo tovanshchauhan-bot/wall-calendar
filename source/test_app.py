@@ -44,7 +44,8 @@ with sync_playwright() as p:
         if not show_day(date): return None
         return pg.evaluate("""d=>{const c=document.querySelector('.day[data-date="'+d+'"]'),h=c.getBoundingClientRect().height;
           return {cell:Math.round(h),tiles:[...c.querySelectorAll('.tile')].map(t=>{const b=t.querySelector('b'),l=[...b.children].find(x=>getComputedStyle(x).display!=='none');
-            return {text:l.textContent,h:Math.round(t.getBoundingClientRect().height),fits:b.scrollWidth<=b.clientWidth+1,upper:getComputedStyle(b).textTransform}}),
+            const tr=t.getBoundingClientRect(),lr=l.getBoundingClientRect();
+            return {text:l.textContent,h:Math.round(tr.height),fits:b.scrollWidth<=b.clientWidth+1,upper:getComputedStyle(b).textTransform,off:Math.round(Math.abs((lr.left+lr.right)/2-(tr.left+tr.right)/2)*10)/10}}),
             bars:[...document.querySelectorAll('.band')].filter(b=>b.dataset.from<=d&&d<=b.dataset.to).map(b=>b.querySelector('span').textContent)}}""", date)
     def bands(name):  # every piece of an event's block on screen: is the name whole, centred, and the block centred in the squares?
         return pg.evaluate("""n=>[...document.querySelectorAll('.band')].filter(b=>b.querySelector('span').textContent===n).map(b=>{const bar=b.querySelector('b').getBoundingClientRect(),
@@ -115,6 +116,7 @@ with sync_playwright() as p:
     check(ev and not ev["tiles"] and ev["bars"] == ["Sample formal"], "an event shows as a named block, not a tile: " + str(ev))
     check(blk and all(b["whole"] and b["textOff"] <= 1.5 and b["boxOff"] <= 2 for b in blk), "a 3-day event is one block per week, name whole and centred, block centred in the squares: " + str(blk))
     check(all(t["fits"] for x in (one, two) if x for t in x["tiles"]), "tile names fit without being cut")
+    check(all(t["off"] <= 1.5 for x in (one, two) if x for t in x["tiles"]), "tile names are centred: " + str([t["off"] for x in (one, two) if x for t in x["tiles"]]))
     if SHOTS: show_day(day(7)); pg.screenshot(path=os.path.join(SHOTS, "tiles.png")); pg.evaluate("document.getElementById('todayBtn').click()"); pg.wait_for_timeout(200)
     pg.click('#monthsSeg [data-m="3"]'); pg.wait_for_timeout(300)
 
